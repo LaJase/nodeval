@@ -15,25 +15,25 @@ import (
 
 var cfgFile string
 
-// ValidationError indique qu'au moins un fichier est invalide (exit 1)
+// ValidationError indicates that at least one file is invalid (exit 1)
 type ValidationError struct{ Msg string }
 
 func (e *ValidationError) Error() string { return e.Msg }
 
-// ConfigError indique un problème de config/schéma manquant (exit 2)
+// ConfigError indicates a config/missing schema problem (exit 2)
 type ConfigError struct{ Msg string }
 
 func (e *ConfigError) Error() string { return e.Msg }
 
 var rootCmd = &cobra.Command{
 	Use:   "jsnsch",
-	Short: "Validateur JSON Schema multithreadé",
-	Long: `jsnsch valide des fichiers JSON contre leurs schémas associés.
+	Short: "Multithreaded JSON Schema validator",
+	Long: `jsnsch validates JSON files against their associated schemas.
 
-Les fichiers doivent suivre la convention *_<TYPE>.json.
-Les schémas doivent être nommés json-schema-Node_<TYPE>.json.
+Files must follow the naming convention *_<TYPE>.json.
+Schemas must be named json-schema-Node_<TYPE>.json.
 
-Exemples:
+Examples:
   jsnsch validate ./data --all
   jsnsch validate ./data --types M,R,I --output json
   jsnsch schema list --schemas ./schemas
@@ -58,11 +58,11 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "fichier de config (défaut: .jsnsch.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: .jsnsch.yaml)")
 }
 
 func initConfig() {
-	// Injecter les defaults depuis config.Default()
+	// Inject defaults from config.Default()
 	defaults := config.Default()
 	viper.SetDefault("schemas", defaults.Schemas)
 	viper.SetDefault("output", defaults.Output)

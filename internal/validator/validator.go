@@ -102,7 +102,7 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 						resultsMap[t.typeNode].record(false, FileError{
 							File:    fmt.Sprintf("json-schema-Node_%s.json", t.typeNode),
 							Path:    "",
-							Message: fmt.Sprintf("schéma manquant : %s", t.typeNode),
+							Message: fmt.Sprintf("missing schema: %s", t.typeNode),
 						})
 						if opts.OnProgress != nil {
 							opts.OnProgress(t.typeNode)
@@ -134,13 +134,13 @@ func validateFile(sch *jsonschema.Schema, fPath string, verbose bool) (FileError
 
 	f, err := os.Open(fPath)
 	if err != nil {
-		return FileError{File: baseName, Message: "erreur lecture"}, false
+		return FileError{File: baseName, Message: "read error"}, false
 	}
 	defer f.Close()
 
 	var v any
 	if err := json.NewDecoder(f).Decode(&v); err != nil {
-		return FileError{File: baseName, Message: "JSON malformé"}, false
+		return FileError{File: baseName, Message: "invalid JSON"}, false
 	}
 
 	errVal := sch.Validate(v)

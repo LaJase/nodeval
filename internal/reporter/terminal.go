@@ -43,7 +43,7 @@ func (t *Terminal) Render(r Report) error {
 		totalFiles += res.Success + res.Errors
 		totalErrors += res.Errors
 		prefix := color.GreenString(">")
-		errStr := fmt.Sprintf("%d Erreurs", res.Errors)
+		errStr := fmt.Sprintf("%d Errors", res.Errors)
 		if res.Errors > 0 {
 			prefix = color.RedString(">")
 			errStr = color.RedString(errStr)
@@ -56,13 +56,13 @@ func (t *Terminal) Render(r Report) error {
 	}
 
 	fmt.Printf("\n%s\n\n", separator)
-	finalMsg := fmt.Sprintf("TOTAL : %d fichiers analysés | %d erreurs", totalFiles, totalErrors)
-	fmt.Printf("⏱️  Temps total : %v\n", r.Duration.Round(1000000))
+	finalMsg := fmt.Sprintf("TOTAL : %d files analyzed | %d errors", totalFiles, totalErrors)
+	fmt.Printf("⏱️  Total time : %v\n", r.Duration.Round(1000000))
 
 	if totalErrors == 0 {
-		color.Green("⭐ " + finalMsg + " (CONFORME)")
+		color.Green("⭐ " + finalMsg + " (VALID)")
 	} else {
-		color.Red("🚨 " + finalMsg + " (NON CONFORME)")
+		color.Red("🚨 " + finalMsg + " (INVALID)")
 	}
 	return nil
 }

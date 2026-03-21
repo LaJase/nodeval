@@ -11,23 +11,23 @@ import (
 
 var schemaCmd = &cobra.Command{
 	Use:   "schema",
-	Short: "Gérer et inspecter les schémas JSON",
+	Short: "Manage and inspect JSON schemas",
 }
 
 var schemaListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "Lister les schémas détectés dans le dossier --schemas",
+	Short: "List schemas detected in the --schemas directory",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
 		types, err := schema.DetectTypes(dir)
 		if err != nil {
-			return fmt.Errorf("lecture du dossier schémas: %w", err)
+			return fmt.Errorf("reading schemas directory: %w", err)
 		}
 		if len(types) == 0 {
-			color.Yellow("Aucun schéma trouvé dans %s", dir)
+			color.Yellow("No schemas found in %s", dir)
 			return nil
 		}
-		fmt.Printf("Schémas détectés dans %s:\n", color.CyanString(dir))
+		fmt.Printf("Schemas detected in %s:\n", color.CyanString(dir))
 		for _, t := range types {
 			fmt.Printf("  %s Type %s → json-schema-Node_%s.json\n", color.GreenString("✓"), t, t)
 		}
@@ -37,7 +37,7 @@ var schemaListCmd = &cobra.Command{
 
 var schemaCheckCmd = &cobra.Command{
 	Use:   "check <type>",
-	Short: "Vérifier qu'un schéma est valide et chargeable",
+	Short: "Check that a schema is valid and loadable",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
@@ -45,10 +45,10 @@ var schemaCheckCmd = &cobra.Command{
 		loader := schema.NewLocalLoader(dir)
 		_, err := loader.Load(typeNode)
 		if err != nil {
-			color.Red("❌ Schéma invalide pour le type %s: %v", typeNode, err)
-			return fmt.Errorf("schéma invalide: %w", err)
+			color.Red("❌ Invalid schema for type %s: %v", typeNode, err)
+			return fmt.Errorf("invalid schema: %w", err)
 		}
-		color.Green("✅ Schéma pour le type %s : OK", typeNode)
+		color.Green("✅ Schema for type %s: OK", typeNode)
 		return nil
 	},
 }
@@ -58,6 +58,6 @@ func init() {
 	schemaCmd.AddCommand(schemaListCmd)
 	schemaCmd.AddCommand(schemaCheckCmd)
 
-	// PersistentFlags héritée par list et check
-	schemaCmd.PersistentFlags().String("schemas", ".", "Dossier contenant les schémas")
+	// PersistentFlags inherited by list and check
+	schemaCmd.PersistentFlags().String("schemas", ".", "Directory containing schemas")
 }

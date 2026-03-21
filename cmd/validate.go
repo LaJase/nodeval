@@ -22,11 +22,11 @@ import (
 
 var validateCmd = &cobra.Command{
 	Use:   "validate <directory>",
-	Short: "Valide les fichiers JSON d'un dossier contre leurs schémas",
-	Long: `Parcourt <directory> récursivement et valide chaque fichier *_<TYPE>.json
-contre le schéma json-schema-Node_<TYPE>.json correspondant.
+	Short: "Validate JSON files in a directory against their schemas",
+	Long: `Recursively walks <directory> and validates each *_<TYPE>.json file
+against the corresponding json-schema-Node_<TYPE>.json schema.
 
-Exemples:
+Examples:
   jsnsch validate ./data --all
   jsnsch validate ./data --types M,R --verbose
   jsnsch validate ./data --all --output json > results.json
@@ -39,13 +39,13 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 
 	f := validateCmd.Flags()
-	f.String("schemas", ".", "Dossier contenant les schémas JSON")
-	f.StringSlice("types", nil, "Types à valider (ex: M,R,I). Défaut: auto-détecté")
-	f.Bool("all", false, "Valider tous les types détectés")
-	f.String("output", "terminal", "Format de sortie: terminal | json | junit")
-	f.Bool("verbose", false, "Afficher le détail complet des erreurs")
-	f.Int("workers", 0, "Nombre de workers (0 = NumCPU)")
-	f.Bool("no-progress", false, "Désactiver les barres de progression")
+	f.String("schemas", ".", "Directory containing JSON schemas")
+	f.StringSlice("types", nil, "Types to validate (e.g. M,R,I). Default: auto-detected")
+	f.Bool("all", false, "Validate all detected types")
+	f.String("output", "terminal", "Output format: terminal | json | junit")
+	f.Bool("verbose", false, "Show full validation error details")
+	f.Int("workers", 0, "Number of workers (0 = NumCPU)")
+	f.Bool("no-progress", false, "Disable progress bars")
 
 	_ = viper.BindPFlags(f)
 }
@@ -65,7 +65,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	if allFlag || len(typesFlag) == 0 {
 		detected, err := schema.DetectTypes(schemasDir)
 		if err != nil {
-			return fmt.Errorf("détection des types: %w", err)
+			return fmt.Errorf("type detection: %w", err)
 		}
 		if len(typesFlag) > 0 && !allFlag {
 			types = typesFlag
@@ -77,19 +77,19 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(types) == 0 {
-		return fmt.Errorf("aucun type trouvé dans %s — vérifiez --schemas ou utilisez --types", schemasDir)
+		return fmt.Errorf("no types found in %s — check --schemas or use --types", schemasDir)
 	}
 
 	if outputFmt == "terminal" {
-		fmt.Printf("\n🚀 Analyse de : %s\n", color.CyanString(dir))
-		fmt.Printf("📂 Schémas   : %s\n", color.CyanString(schemasDir))
+		fmt.Printf("\n🚀 Analyzing : %s\n", color.CyanString(dir))
+		fmt.Printf("📂 Schemas   : %s\n", color.CyanString(schemasDir))
 		fmt.Printf("🏷️  Types     : %v\n\n", types)
 	}
 
 	// Scan files
 	filesByType, err := scanner.ScanFiles(dir, types)
 	if err != nil {
-		return fmt.Errorf("scan du dossier: %w", err)
+		return fmt.Errorf("directory scan: %w", err)
 	}
 
 	totalTasks := 0
@@ -97,7 +97,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		totalTasks += len(files)
 	}
 	if totalTasks == 0 {
-		color.Yellow("⚠️  Aucun fichier trouvé pour les types demandés.")
+		color.Yellow("⚠️  No files found for the requested types.")
 		return nil
 	}
 
@@ -136,7 +136,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		numWorkers = runtime.NumCPU()
 	}
 	if outputFmt == "terminal" {
-		fmt.Printf("👷 Workers actifs : %d\n", numWorkers)
+		fmt.Printf("👷 Active workers : %d\n", numWorkers)
 	}
 
 	start := time.Now()
@@ -179,7 +179,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	// Exit code
 	for _, res := range results {
 		if res.Errors > 0 {
-			return &ValidationError{Msg: fmt.Sprintf("%d fichier(s) invalide(s)", res.Errors)}
+			return &ValidationError{Msg: fmt.Sprintf("%d invalid file(s)", res.Errors)}
 		}
 	}
 	return nil

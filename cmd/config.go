@@ -12,59 +12,59 @@ import (
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Gérer la configuration de jsnsch",
+	Short: "Manage jsnsch configuration",
 }
 
 var configInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Générer un fichier .jsnsch.yaml exemple dans le dossier courant",
+	Short: "Generate a sample .jsnsch.yaml file in the current directory",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		const template = `# jsnsch configuration
 # Documentation: jsnsch --help
 
-# Dossier contenant les schémas JSON (json-schema-Node_<TYPE>.json)
+# Directory containing JSON schemas (json-schema-Node_<TYPE>.json)
 schemas: .
 
-# Types à valider. Si vide, auto-détecté depuis le dossier schemas.
+# Types to validate. If empty, auto-detected from the schemas directory.
 # types:
 #   - M
 #   - R
 #   - I
 
-# Format de sortie: terminal | json | junit
+# Output format: terminal | json | junit
 output: terminal
 
-# Afficher le détail complet des erreurs de validation
+# Show full validation error details
 verbose: false
 
-# Nombre de workers parallèles (0 = NumCPU automatique)
+# Number of parallel workers (0 = NumCPU automatic)
 workers: 0
 
-# Désactiver les barres de progression (utile en CI/CD)
+# Disable progress bars (useful in CI/CD)
 no_progress: false
 `
 		const filename = ".jsnsch.yaml"
 		if _, err := os.Stat(filename); err == nil {
-			color.Yellow("⚠️  %s existe déjà. Supprimez-le avant de relancer init.", filename)
+			color.Yellow("⚠️  %s already exists. Remove it before running init again.", filename)
 			return nil
 		}
 		if err := os.WriteFile(filename, []byte(template), 0644); err != nil {
-			return fmt.Errorf("impossible de créer %s: %w", filename, err)
+			return fmt.Errorf("unable to create %s: %w", filename, err)
 		}
-		color.Green("✅ %s créé avec succès.", filename)
+		color.Green("✅ %s created successfully.", filename)
 		return nil
 	},
 }
 
 var configShowCmd = &cobra.Command{
 	Use:   "show",
-	Short: "Afficher la configuration active (fusion CLI + fichier + défauts)",
+	Short: "Show the active configuration (merge of CLI + file + defaults)",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfgUsed := viper.ConfigFileUsed()
 		if cfgUsed == "" {
-			cfgUsed = "(aucun fichier de config trouvé)"
+			cfgUsed = "(no config file found)"
 		}
-		fmt.Printf("Fichier de config : %s\n\n", color.CyanString(cfgUsed))
+		fmt.Printf("Config file : %s\n\n", color.CyanString(cfgUsed))
 		fmt.Printf("  schemas     : %s\n", viper.GetString("schemas"))
 		fmt.Printf("  types       : %v\n", viper.GetStringSlice("types"))
 		fmt.Printf("  output      : %s\n", viper.GetString("output"))
