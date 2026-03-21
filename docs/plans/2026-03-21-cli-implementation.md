@@ -1,4 +1,4 @@
-# jsnsch CLI Implementation Plan
+# nodeval CLI Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -64,7 +64,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"jsnsch/internal/config"
+	"nodeval/internal/config"
 )
 
 func TestDefaults(t *testing.T) {
@@ -83,9 +83,9 @@ func TestDefaults(t *testing.T) {
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte("output: json\nworkers: 4\nverbose: true\n")
-	_ = os.WriteFile(filepath.Join(dir, ".jsnsch.yaml"), content, 0644)
+	_ = os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0644)
 
-	cfg, err := config.LoadFrom(filepath.Join(dir, ".jsnsch.yaml"))
+	cfg, err := config.LoadFrom(filepath.Join(dir, ".nodeval.yaml"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +183,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 func TestLocalLoaderMissing(t *testing.T) {
@@ -287,7 +287,7 @@ import (
 	"slices"
 	"testing"
 
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 func TestDetectTypes(t *testing.T) {
@@ -392,7 +392,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"jsnsch/internal/scanner"
+	"nodeval/internal/scanner"
 )
 
 func TestScanFiles(t *testing.T) {
@@ -504,7 +504,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/santhosh-tekuri/jsonschema/v5"
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 type FileError struct {
@@ -707,7 +707,7 @@ git commit -m "feat: add validator package with worker pool"
 package reporter
 
 import (
-	"jsnsch/internal/validator"
+	"nodeval/internal/validator"
 	"time"
 )
 
@@ -819,8 +819,8 @@ import (
 	"testing"
 	"time"
 
-	"jsnsch/internal/reporter"
-	"jsnsch/internal/validator"
+	"nodeval/internal/reporter"
+	"nodeval/internal/validator"
 )
 
 func TestJSONReporter(t *testing.T) {
@@ -968,8 +968,8 @@ import (
 	"testing"
 	"time"
 
-	"jsnsch/internal/reporter"
-	"jsnsch/internal/validator"
+	"nodeval/internal/reporter"
+	"nodeval/internal/validator"
 )
 
 func TestJUnitReporter(t *testing.T) {
@@ -1128,18 +1128,18 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "jsnsch",
+	Use:   "nodeval",
 	Short: "Validateur JSON Schema multithreadé",
-	Long: `jsnsch valide des fichiers JSON contre leurs schémas associés.
+	Long: `nodeval valide des fichiers JSON contre leurs schémas associés.
 
 Les fichiers doivent suivre la convention *_<TYPE>.json.
 Les schémas doivent être nommés json-schema-Node_<TYPE>.json.
 
 Exemples:
-  jsnsch validate ./data --all
-  jsnsch validate ./data --types M,R,I --output json
-  jsnsch schema list --schemas ./schemas
-  jsnsch config init`,
+  nodeval validate ./data --all
+  nodeval validate ./data --types M,R,I --output json
+  nodeval schema list --schemas ./schemas
+  nodeval config init`,
 }
 
 func Execute() {
@@ -1151,7 +1151,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "fichier de config (défaut: .jsnsch.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "fichier de config (défaut: .nodeval.yaml)")
 }
 
 func initConfig() {
@@ -1160,8 +1160,8 @@ func initConfig() {
 	} else {
 		home, _ := os.UserHomeDir()
 		viper.AddConfigPath(".")
-		viper.AddConfigPath(filepath.Join(home, ".config", "jsnsch"))
-		viper.SetConfigName(".jsnsch")
+		viper.AddConfigPath(filepath.Join(home, ".config", "nodeval"))
+		viper.SetConfigName(".nodeval")
 		viper.SetConfigType("yaml")
 	}
 	viper.AutomaticEnv()
@@ -1210,10 +1210,10 @@ import (
 	"github.com/vbauerster/mpb/v8"
 	"github.com/vbauerster/mpb/v8/decor"
 
-	"jsnsch/internal/reporter"
-	"jsnsch/internal/scanner"
-	"jsnsch/internal/schema"
-	"jsnsch/internal/validator"
+	"nodeval/internal/reporter"
+	"nodeval/internal/scanner"
+	"nodeval/internal/schema"
+	"nodeval/internal/validator"
 )
 
 var validateCmd = &cobra.Command{
@@ -1223,10 +1223,10 @@ var validateCmd = &cobra.Command{
 contre le schéma json-schema-Node_<TYPE>.json correspondant.
 
 Exemples:
-  jsnsch validate ./data --all
-  jsnsch validate ./data --types M,R --verbose
-  jsnsch validate ./data --all --output json > results.json
-  jsnsch validate ./data --all --output junit > results.xml`,
+  nodeval validate ./data --all
+  nodeval validate ./data --types M,R --verbose
+  nodeval validate ./data --all --output json > results.json
+  nodeval validate ./data --all --output junit > results.xml`,
 	Args: cobra.ExactArgs(1),
 	RunE: runValidate,
 }
@@ -1414,7 +1414,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 var schemaCmd = &cobra.Command{
@@ -1509,15 +1509,15 @@ import (
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Gérer la configuration de jsnsch",
+	Short: "Gérer la configuration de nodeval",
 }
 
 var configInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Générer un fichier .jsnsch.yaml exemple dans le dossier courant",
+	Short: "Générer un fichier .nodeval.yaml exemple dans le dossier courant",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		const template = `# jsnsch configuration
-# Documentation: jsnsch --help
+		const template = `# nodeval configuration
+# Documentation: nodeval --help
 
 # Dossier contenant les schémas JSON (json-schema-Node_<TYPE>.json)
 schemas: .
@@ -1540,7 +1540,7 @@ workers: 0
 # Désactiver les barres de progression (utile en CI/CD)
 no_progress: false
 `
-		const filename = ".jsnsch.yaml"
+		const filename = ".nodeval.yaml"
 		if _, err := os.Stat(filename); err == nil {
 			color.Yellow("⚠️  %s existe déjà. Supprimez-le avant de relancer init.", filename)
 			return nil
@@ -1605,7 +1605,7 @@ git commit -m "feat: add config init and show subcommands"
 // main.go
 package main
 
-import "jsnsch/cmd"
+import "nodeval/cmd"
 
 func main() {
 	cmd.Execute()
@@ -1615,18 +1615,18 @@ func main() {
 **Step 2: Build Linux et Windows**
 
 ```bash
-go build -o jsnsch .
-GOOS=windows GOARCH=amd64 go build -o jsnsch.exe .
+go build -o nodeval .
+GOOS=windows GOARCH=amd64 go build -o nodeval.exe .
 ```
 Expected: deux binaires créés sans erreur.
 
 **Step 3: Vérifier --help**
 
 ```bash
-./jsnsch --help
-./jsnsch validate --help
-./jsnsch schema --help
-./jsnsch config --help
+./nodeval --help
+./nodeval validate --help
+./nodeval schema --help
+./nodeval config --help
 ```
 Expected: aide affichée pour chaque commande.
 

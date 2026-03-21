@@ -2,7 +2,7 @@
 package reporter
 
 import (
-	"jsnsch/internal/validator"
+	"nodeval/internal/validator"
 	"time"
 )
 

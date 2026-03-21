@@ -1,16 +1,16 @@
-# Design : jsnsch CLI
+# Design : nodeval CLI
 
 **Date :** 2026-03-21
 **Statut :** Validé
 
 ## Contexte
 
-`jsnsch` est un validateur JSON schema multithreadé. La base existante (`main.go`) est fonctionnelle mais n'a pas d'interface CLI structurée. L'objectif est de la transformer en un outil CLI professionnel, maintenable, et extensible.
+`nodeval` est un validateur JSON schema multithreadé. La base existante (`main.go`) est fonctionnelle mais n'a pas d'interface CLI structurée. L'objectif est de la transformer en un outil CLI professionnel, maintenable, et extensible.
 
 ## Commandes
 
 ```
-jsnsch
+nodeval
 ├── validate <directory>
 │   ├── --schemas <dir>              Dossier des schémas (défaut: .)
 │   ├── --types M,R,I                Types à valider (défaut: auto-detect)
@@ -25,14 +25,14 @@ jsnsch
 │   └── check <type>                 Vérifie qu'un schéma est valide
 │
 └── config
-    ├── init                         Génère un .jsnsch.yaml exemple
+    ├── init                         Génère un .nodeval.yaml exemple
     └── show                         Affiche la config active
 ```
 
 ## Architecture interne
 
 ```
-jsnsch/
+nodeval/
 ├── main.go
 ├── cmd/
 │   ├── root.go       # Cobra root + Viper init
@@ -53,7 +53,7 @@ jsnsch/
 │       ├── terminal.go  # Sortie couleur + barres mpb
 │       ├── json.go      # Sortie JSON structuré
 │       └── junit.go     # Sortie JUnit XML
-├── .jsnsch.yaml
+├── .nodeval.yaml
 └── go.mod
 ```
 
@@ -69,7 +69,7 @@ type Loader interface {
 
 Implémentations prévues : `LocalLoader` (maintenant), `URLLoader` / `ArchiveLoader` (plus tard).
 
-## Fichier de config `.jsnsch.yaml`
+## Fichier de config `.nodeval.yaml`
 
 ```yaml
 schemas: ./schemas
@@ -81,7 +81,7 @@ types:            # optionnel, sinon auto-détecté
   - R
 ```
 
-Priorité : flag CLI > `.jsnsch.yaml` local > `~/.config/jsnsch/config.yaml` > valeurs par défaut
+Priorité : flag CLI > `.nodeval.yaml` local > `~/.config/nodeval/config.yaml` > valeurs par défaut
 
 ## Formats de sortie
 

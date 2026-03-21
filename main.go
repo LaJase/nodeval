@@ -1,7 +1,7 @@
 // main.go
 package main
 
-import "jsnsch/cmd"
+import "nodeval/cmd"
 
 func main() {
 	cmd.Execute()

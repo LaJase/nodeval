@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 func TestDetectTypes(t *testing.T) {

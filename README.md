@@ -1,4 +1,4 @@
-# jsnsch
+# nodeval
 
 > Multithreaded JSON Schema validator with auto-detection, multi-format output, and a Cobra CLI.
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-`jsnsch` recursively scans a directory for JSON files, automatically detects which schemas apply to them based on a
+`nodeval` recursively scans a directory for JSON files, automatically detects which schemas apply to them based on a
 naming convention, and validates every file in parallel using a configurable worker pool.
 
 ### **Key features**
@@ -28,23 +28,23 @@ Requirements: Go 1.22+ (the module declares `go 1.26.1`).
 ### **Linux**
 
 ```bash
-git clone <repo-url> jsnsch
-cd jsnsch
-go build -o jsnsch .
+git clone <repo-url> nodeval
+cd nodeval
+go build -o nodeval .
 ```
 
 ### **Windows (amd64)**
 
 ```powershell
 $env:GOOS="windows"; $env:GOARCH="amd64"
-go build -o jsnsch.exe .
+go build -o nodeval.exe .
 ```
 
 ### **Windows (arm64)**
 
 ```powershell
 $env:GOOS="windows"; $env:GOARCH="arm64"
-go build -o jsnsch.exe .
+go build -o nodeval.exe .
 ```
 
 The resulting binary is self-contained — no runtime dependencies.
@@ -55,29 +55,29 @@ The resulting binary is self-contained — no runtime dependencies.
 
 ```bash
 # Validate all detected types in ./data using schemas in the current directory
-jsnsch validate ./data --all
+nodeval validate ./data --all
 
 # Validate only types M and R, show full error detail
-jsnsch validate ./data --types M,R --verbose
+nodeval validate ./data --types M,R --verbose
 
 # Export results as JSON (suitable for jq / downstream tooling)
-jsnsch validate ./data --all --output json > results.json
+nodeval validate ./data --all --output json > results.json
 
 # Export results as JUnit XML (suitable for CI test reporters)
-jsnsch validate ./data --all --output junit > results.xml
+nodeval validate ./data --all --output junit > results.xml
 ```
 
 ---
 
 ## Commands
 
-### `jsnsch validate <directory>`
+### `nodeval validate <directory>`
 
 Recursively scans `<directory>` for files matching `*_<TYPE>.json` and validates each one against the corresponding
 `json-schema-Node_<TYPE>.json` schema.
 
 ```bash
-jsnsch validate <directory> [flags]
+nodeval validate <directory> [flags]
 ```
 
 | Flag              | Default    | Description                                                                                                            |
@@ -94,32 +94,32 @@ jsnsch validate <directory> [flags]
 
 ```bash
 # Auto-detect types, schemas alongside the data
-jsnsch validate ./data --all
+nodeval validate ./data --all
 
 # Use a dedicated schemas folder with 4 workers
-jsnsch validate ./data --all --schemas ./schemas --workers 4
+nodeval validate ./data --all --schemas ./schemas --workers 4
 
 # Validate a specific subset of types, disable progress bars
-jsnsch validate ./data --types M,R --no-progress
+nodeval validate ./data --types M,R --no-progress
 
 # Machine-readable output redirected to a file
-jsnsch validate ./data --all --output json > results.json
+nodeval validate ./data --all --output json > results.json
 
 # JUnit XML for GitLab / Jenkins test reports
-jsnsch validate ./data --all --output junit --no-progress > results.xml
+nodeval validate ./data --all --output junit --no-progress > results.xml
 
 # Full error detail in the terminal
-jsnsch validate ./data --types I --verbose
+nodeval validate ./data --types I --verbose
 ```
 
 ---
 
-### `jsnsch schema list`
+### `nodeval schema list`
 
 Lists every schema detected in the `--schemas` directory and shows the type name it corresponds to.
 
 ```bash
-jsnsch schema list --schemas ./schemas
+nodeval schema list --schemas ./schemas
 ```
 
 | Flag              | Default | Description                            |
@@ -137,13 +137,13 @@ Schemas detected in ./schemas:
 
 ---
 
-### `jsnsch schema check <type>`
+### `nodeval schema check <type>`
 
 Loads and parses a single schema to verify it is valid and accessible. Useful for debugging schema issues before running
 a full validation.
 
 ```bash
-jsnsch schema check M --schemas ./schemas
+nodeval schema check M --schemas ./schemas
 ```
 
 | Flag              | Default | Description                           |
@@ -154,30 +154,30 @@ Returns exit code `0` on success, `3` on failure.
 
 ---
 
-### `jsnsch config init`
+### `nodeval config init`
 
-Generates a commented `.jsnsch.yaml` template in the current working directory. Aborts safely if the file already
+Generates a commented `.nodeval.yaml` template in the current working directory. Aborts safely if the file already
 exists.
 
 ```bash
-jsnsch config init
+nodeval config init
 ```
 
 ---
 
-### `jsnsch config show`
+### `nodeval config show`
 
 Prints the effective configuration after merging CLI flags, the loaded config file, and built-in defaults. Useful to
 confirm which config file is active and what values are in effect.
 
 ```bash
-jsnsch config show
+nodeval config show
 ```
 
 #### **Example output**
 
 ```
-Config file : ./.jsnsch.yaml
+Config file : ./.nodeval.yaml
 
   schemas     : ./schemas
   types       : []
@@ -191,21 +191,21 @@ Config file : ./.jsnsch.yaml
 
 ## Configuration
 
-`jsnsch` uses [Viper](https://github.com/spf13/viper) for configuration management.
+`nodeval` uses [Viper](https://github.com/spf13/viper) for configuration management.
 
 ### Priority order (highest to lowest)
 
 1. **CLI flags** — flags passed directly on the command line always win.
-2. **Local config** — `.jsnsch.yaml` in the current working directory.
-3. **Global config** — `~/.config/jsnsch/.jsnsch.yaml`.
+2. **Local config** — `.nodeval.yaml` in the current working directory.
+3. **Global config** — `~/.config/nodeval/.nodeval.yaml`.
 4. **Built-in defaults** — see the table below.
 
-### `.jsnsch.yaml` — full example
+### `.nodeval.yaml` — full example
 
-Generate this file with `jsnsch config init`, then edit as needed.
+Generate this file with `nodeval config init`, then edit as needed.
 
 ```yaml
-# jsnsch configuration
+# nodeval configuration
 
 # Directory containing the JSON schema files (json-schema-Node_<TYPE>.json)
 # Default: . (current directory)
@@ -248,7 +248,7 @@ no_progress: false
 
 ## Schema naming convention
 
-`jsnsch` relies on a strict naming convention to associate data files with their schemas automatically.
+`nodeval` relies on a strict naming convention to associate data files with their schemas automatically.
 
 ### Schema files
 
@@ -303,7 +303,7 @@ Summary:
 
 ----------------------------------------------------------------------------------------------------
 
-⏱️  Total time : 312ms
+⏱️ Total time : 312ms
 🚨 TOTAL : 230 files analyzed | 1 errors (INVALID)
 ```
 
@@ -386,22 +386,22 @@ Compatible with GitLab CI, Jenkins, and any JUnit-aware test reporter.
 
 ```bash
 # Linux amd64 (native)
-go build -o jsnsch .
+go build -o nodeval .
 
 # Linux arm64
-GOOS=linux GOARCH=arm64 go build -o jsnsch-linux-arm64 .
+GOOS=linux GOARCH=arm64 go build -o nodeval-linux-arm64 .
 
 # Windows amd64
-GOOS=windows GOARCH=amd64 go build -o jsnsch.exe .
+GOOS=windows GOARCH=amd64 go build -o nodeval.exe .
 
 # Windows arm64
-GOOS=windows GOARCH=arm64 go build -o jsnsch-arm64.exe .
+GOOS=windows GOARCH=arm64 go build -o nodeval-arm64.exe .
 
 # macOS amd64
-GOOS=darwin GOARCH=amd64 go build -o jsnsch-darwin .
+GOOS=darwin GOARCH=amd64 go build -o nodeval-darwin .
 
 # macOS arm64 (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -o jsnsch-darwin-arm64 .
+GOOS=darwin GOARCH=arm64 go build -o nodeval-darwin-arm64 .
 ```
 
 ---
@@ -409,18 +409,18 @@ GOOS=darwin GOARCH=arm64 go build -o jsnsch-darwin-arm64 .
 ## Project structure
 
 ```
-jsnsch/
+nodeval/
 ├── main.go                              # Entry point — delegates to cmd.Execute()
 ├── go.mod                               # Module declaration and dependencies
 ├── go.sum                               # Dependency checksums
-├── jsnsch                               # Compiled Linux binary (not committed)
-├── jsnsch.exe                           # Compiled Windows binary (not committed)
+├── nodeval                               # Compiled Linux binary (not committed)
+├── nodeval.exe                           # Compiled Windows binary (not committed)
 │
 ├── cmd/
 │   ├── root.go                          # Root command, config initialisation, exit-code mapping
-│   ├── validate.go                      # `jsnsch validate` command and all its flags
-│   ├── schema.go                        # `jsnsch schema list` and `jsnsch schema check`
-│   └── config.go                        # `jsnsch config init` and `jsnsch config show`
+│   ├── validate.go                      # `nodeval validate` command and all its flags
+│   ├── schema.go                        # `nodeval schema list` and `nodeval schema check`
+│   └── config.go                        # `nodeval config init` and `nodeval config show`
 │
 ├── internal/
 │   ├── config/

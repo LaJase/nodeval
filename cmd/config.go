@@ -12,15 +12,15 @@ import (
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Manage jsnsch configuration",
+	Short: "Manage nodeval configuration",
 }
 
 var configInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Generate a sample .jsnsch.yaml file in the current directory",
+	Short: "Generate a sample .nodeval.yaml file in the current directory",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		const template = `# jsnsch configuration
-# Documentation: jsnsch --help
+		const template = `# nodeval configuration
+# Documentation: nodeval --help
 
 # Directory containing JSON schemas (json-schema-Node_<TYPE>.json)
 schemas: .
@@ -43,7 +43,7 @@ workers: 0
 # Disable progress bars (useful in CI/CD)
 no_progress: false
 `
-		const filename = ".jsnsch.yaml"
+		const filename = ".nodeval.yaml"
 		if _, err := os.Stat(filename); err == nil {
 			color.Yellow("⚠️  %s already exists. Remove it before running init again.", filename)
 			return nil

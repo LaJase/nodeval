@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 func TestLocalLoaderMissing(t *testing.T) {

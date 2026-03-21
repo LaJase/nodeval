@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"jsnsch/internal/reporter"
-	"jsnsch/internal/validator"
+	"nodeval/internal/reporter"
+	"nodeval/internal/validator"
 )
 
 func TestJUnitReporter(t *testing.T) {

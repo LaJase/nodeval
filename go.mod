@@ -1,4 +1,4 @@
-module jsnsch
+module nodeval
 
 go 1.26.1
 

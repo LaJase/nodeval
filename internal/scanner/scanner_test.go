@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"jsnsch/internal/scanner"
+	"nodeval/internal/scanner"
 )
 
 func TestScanFiles(t *testing.T) {

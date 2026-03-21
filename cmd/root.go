@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"jsnsch/internal/config"
+	"nodeval/internal/config"
 )
 
 var cfgFile string
@@ -26,18 +26,18 @@ type ConfigError struct{ Msg string }
 func (e *ConfigError) Error() string { return e.Msg }
 
 var rootCmd = &cobra.Command{
-	Use:   "jsnsch",
+	Use:   "nodeval",
 	Short: "Multithreaded JSON Schema validator",
-	Long: `jsnsch validates JSON files against their associated schemas.
+	Long: `nodeval validates JSON files against their associated schemas.
 
 Files must follow the naming convention *_<TYPE>.json.
 Schemas must be named json-schema-Node_<TYPE>.json.
 
 Examples:
-  jsnsch validate ./data --all
-  jsnsch validate ./data --types M,R,I --output json
-  jsnsch schema list --schemas ./schemas
-  jsnsch config init`,
+  nodeval validate ./data --all
+  nodeval validate ./data --types M,R,I --output json
+  nodeval schema list --schemas ./schemas
+  nodeval config init`,
 }
 
 func Execute() {
@@ -58,7 +58,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: .jsnsch.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: .nodeval.yaml)")
 }
 
 func initConfig() {
@@ -75,8 +75,8 @@ func initConfig() {
 	} else {
 		home, _ := os.UserHomeDir()
 		viper.AddConfigPath(".")
-		viper.AddConfigPath(filepath.Join(home, ".config", "jsnsch"))
-		viper.SetConfigName(".jsnsch")
+		viper.AddConfigPath(filepath.Join(home, ".config", "nodeval"))
+		viper.SetConfigName(".nodeval")
 		viper.SetConfigType("yaml")
 	}
 	viper.AutomaticEnv()

@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 type FileError struct {

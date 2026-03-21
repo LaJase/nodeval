@@ -6,7 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"jsnsch/internal/schema"
+	"nodeval/internal/schema"
 )
 
 var schemaCmd = &cobra.Command{

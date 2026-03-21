@@ -14,10 +14,10 @@ import (
 	"github.com/vbauerster/mpb/v8"
 	"github.com/vbauerster/mpb/v8/decor"
 
-	"jsnsch/internal/reporter"
-	"jsnsch/internal/scanner"
-	"jsnsch/internal/schema"
-	"jsnsch/internal/validator"
+	"nodeval/internal/reporter"
+	"nodeval/internal/scanner"
+	"nodeval/internal/schema"
+	"nodeval/internal/validator"
 )
 
 var validateCmd = &cobra.Command{
@@ -27,10 +27,10 @@ var validateCmd = &cobra.Command{
 against the corresponding json-schema-Node_<TYPE>.json schema.
 
 Examples:
-  jsnsch validate ./data --all
-  jsnsch validate ./data --types M,R --verbose
-  jsnsch validate ./data --all --output json > results.json
-  jsnsch validate ./data --all --output junit > results.xml`,
+  nodeval validate ./data --all
+  nodeval validate ./data --types M,R --verbose
+  nodeval validate ./data --all --output json > results.json
+  nodeval validate ./data --all --output junit > results.xml`,
 	Args: cobra.ExactArgs(1),
 	RunE: runValidate,
 }
