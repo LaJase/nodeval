@@ -6,15 +6,18 @@
 
 ## Overview
 
-`jsnsch` recursively scans a directory for JSON files, automatically detects which schemas apply to them based on a naming convention, and validates every file in parallel using a configurable worker pool.
+`jsnsch` recursively scans a directory for JSON files, automatically detects which schemas apply to them based on a
+naming convention, and validates every file in parallel using a configurable worker pool.
 
-**Key features**
+### **Key features**
 
 - **Multithreaded** — worker pool sized to `NumCPU` by default; fully configurable.
 - **Auto-detection** — scans the schema directory and discovers available types without any manual listing.
 - **Multi-format output** — colored terminal report, machine-readable JSON, and JUnit XML for CI pipelines.
-- **Cobra CLI** — structured sub-command tree (`validate`, `schema`, `config`) with persistent flags and Viper-backed configuration.
-- **Priority layering** — CLI flags override local config, which overrides global config, which overrides built-in defaults.
+- **Cobra CLI** — structured sub-command tree (`validate`, `schema`, `config`) with persistent flags and Viper-backed
+  configuration.
+- **Priority layering** — CLI flags override local config, which overrides global config, which overrides built-in
+  defaults.
 
 ---
 
@@ -22,7 +25,7 @@
 
 Requirements: Go 1.22+ (the module declares `go 1.26.1`).
 
-**Linux**
+### **Linux**
 
 ```bash
 git clone <repo-url> jsnsch
@@ -30,14 +33,14 @@ cd jsnsch
 go build -o jsnsch .
 ```
 
-**Windows (amd64)**
+### **Windows (amd64)**
 
 ```powershell
 $env:GOOS="windows"; $env:GOARCH="amd64"
 go build -o jsnsch.exe .
 ```
 
-**Windows (arm64)**
+### **Windows (arm64)**
 
 ```powershell
 $env:GOOS="windows"; $env:GOARCH="arm64"
@@ -70,23 +73,24 @@ jsnsch validate ./data --all --output junit > results.xml
 
 ### `jsnsch validate <directory>`
 
-Recursively scans `<directory>` for files matching `*_<TYPE>.json` and validates each one against the corresponding `json-schema-Node_<TYPE>.json` schema.
+Recursively scans `<directory>` for files matching `*_<TYPE>.json` and validates each one against the corresponding
+`json-schema-Node_<TYPE>.json` schema.
 
-```
+```bash
 jsnsch validate <directory> [flags]
 ```
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--schemas <dir>` | `.` | Directory containing the JSON schema files. |
-| `--types <list>` | *(auto)* | Comma-separated list of types to validate (e.g. `M,R,I`). When omitted the schemas directory is scanned automatically. |
-| `--all` | `false` | Force validation of all auto-detected types, ignoring `--types`. |
-| `--output <fmt>` | `terminal` | Output format: `terminal`, `json`, or `junit`. |
-| `--verbose` | `false` | Print the full JSON path and error message for each invalid file. |
-| `--workers <n>` | `0` | Number of parallel workers. `0` means one worker per logical CPU. |
-| `--no-progress` | `false` | Suppress the per-type progress bars (recommended in CI/CD). |
+| Flag              | Default    | Description                                                                                                            |
+| ----------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `--schemas <dir>` | `.`        | Directory containing the JSON schema files.                                                                            |
+| `--types <list>`  | _(auto)_   | Comma-separated list of types to validate (e.g. `M,R,I`). When omitted the schemas directory is scanned automatically. |
+| `--all`           | `false`    | Force validation of all auto-detected types, ignoring `--types`.                                                       |
+| `--output <fmt>`  | `terminal` | Output format: `terminal`, `json`, or `junit`.                                                                         |
+| `--verbose`       | `false`    | Print the full JSON path and error message for each invalid file.                                                      |
+| `--workers <n>`   | `0`        | Number of parallel workers. `0` means one worker per logical CPU.                                                      |
+| `--no-progress`   | `false`    | Suppress the per-type progress bars (recommended in CI/CD).                                                            |
 
-**Examples**
+#### **Examples**
 
 ```bash
 # Auto-detect types, schemas alongside the data
@@ -118,11 +122,11 @@ Lists every schema detected in the `--schemas` directory and shows the type name
 jsnsch schema list --schemas ./schemas
 ```
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--schemas <dir>` | `.` | Directory to inspect for schema files. |
+| Flag              | Default | Description                            |
+| ----------------- | ------- | -------------------------------------- |
+| `--schemas <dir>` | `.`     | Directory to inspect for schema files. |
 
-**Example output**
+#### **Example output**
 
 ```
 Schemas detected in ./schemas:
@@ -135,15 +139,16 @@ Schemas detected in ./schemas:
 
 ### `jsnsch schema check <type>`
 
-Loads and parses a single schema to verify it is valid and accessible. Useful for debugging schema issues before running a full validation.
+Loads and parses a single schema to verify it is valid and accessible. Useful for debugging schema issues before running
+a full validation.
 
 ```bash
 jsnsch schema check M --schemas ./schemas
 ```
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--schemas <dir>` | `.` | Directory containing the schema file. |
+| Flag              | Default | Description                           |
+| ----------------- | ------- | ------------------------------------- |
+| `--schemas <dir>` | `.`     | Directory containing the schema file. |
 
 Returns exit code `0` on success, `3` on failure.
 
@@ -151,7 +156,8 @@ Returns exit code `0` on success, `3` on failure.
 
 ### `jsnsch config init`
 
-Generates a commented `.jsnsch.yaml` template in the current working directory. Aborts safely if the file already exists.
+Generates a commented `.jsnsch.yaml` template in the current working directory. Aborts safely if the file already
+exists.
 
 ```bash
 jsnsch config init
@@ -161,13 +167,14 @@ jsnsch config init
 
 ### `jsnsch config show`
 
-Prints the effective configuration after merging CLI flags, the loaded config file, and built-in defaults. Useful to confirm which config file is active and what values are in effect.
+Prints the effective configuration after merging CLI flags, the loaded config file, and built-in defaults. Useful to
+confirm which config file is active and what values are in effect.
 
 ```bash
 jsnsch config show
 ```
 
-**Example output**
+#### **Example output**
 
 ```
 Config file : ./.jsnsch.yaml
@@ -228,14 +235,14 @@ workers: 0
 no_progress: false
 ```
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `schemas` | string | `.` | Path to the directory holding schema files. |
-| `types` | list | *(empty)* | Explicit list of types; auto-detected when empty. |
-| `output` | string | `terminal` | Report format: `terminal`, `json`, or `junit`. |
-| `verbose` | bool | `false` | Include full JSON path and message in error output. |
-| `workers` | int | `0` | Worker pool size; `0` defaults to `runtime.NumCPU()`. |
-| `no_progress` | bool | `false` | Suppress progress bars. |
+| Key           | Type   | Default    | Description                                           |
+| ------------- | ------ | ---------- | ----------------------------------------------------- |
+| `schemas`     | string | `.`        | Path to the directory holding schema files.           |
+| `types`       | list   | _(empty)_  | Explicit list of types; auto-detected when empty.     |
+| `output`      | string | `terminal` | Report format: `terminal`, `json`, or `junit`.        |
+| `verbose`     | bool   | `false`    | Include full JSON path and message in error output.   |
+| `workers`     | int    | `0`        | Worker pool size; `0` defaults to `runtime.NumCPU()`. |
+| `no_progress` | bool   | `false`    | Suppress progress bars.                               |
 
 ---
 
@@ -291,13 +298,13 @@ Colored, human-readable output with optional progress bars. The final summary gr
 ❌ bad_file_M.json : root > SomeDefinition : field xyz is required
 
 Summary:
-> Nodes M  :  142 OK |  1 Erreurs
-> Nodes R  :   87 OK |  0 Erreurs
+> Nodes M  :  142 OK |  1 Errors
+> Nodes R  :   87 OK |  0 Errors
 
 ----------------------------------------------------------------------------------------------------
 
-⏱️  Temps total : 312ms
-🚨 TOTAL : 230 fichiers analysés | 1 erreurs (NON CONFORME)
+⏱️  Total time : 312ms
+🚨 TOTAL : 230 files analyzed | 1 errors (INVALID)
 ```
 
 With `--verbose`, each error is expanded over three lines:
@@ -366,12 +373,12 @@ Compatible with GitLab CI, Jenkins, and any JUnit-aware test reporter.
 
 ## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| `0` | All files are valid. |
-| `1` | At least one file failed schema validation (`ValidationError`). |
-| `2` | Configuration or schema problem — e.g. a schema file is missing or unreadable (`ConfigError`). |
-| `3` | Unexpected runtime error (I/O failure, bad arguments, etc.). |
+| Code | Meaning                                                                                        |
+| ---- | ---------------------------------------------------------------------------------------------- |
+| `0`  | All files are valid.                                                                           |
+| `1`  | At least one file failed schema validation (`ValidationError`).                                |
+| `2`  | Configuration or schema problem — e.g. a schema file is missing or unreadable (`ConfigError`). |
+| `3`  | Unexpected runtime error (I/O failure, bad arguments, etc.).                                   |
 
 ---
 
