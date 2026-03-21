@@ -2,15 +2,28 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"jsnsch/internal/config"
 )
 
 var cfgFile string
+
+// ValidationError indique qu'au moins un fichier est invalide (exit 1)
+type ValidationError struct{ Msg string }
+
+func (e *ValidationError) Error() string { return e.Msg }
+
+// ConfigError indique un problème de config/schéma manquant (exit 2)
+type ConfigError struct{ Msg string }
+
+func (e *ConfigError) Error() string { return e.Msg }
 
 var rootCmd = &cobra.Command{
 	Use:   "jsnsch",
@@ -29,8 +42,17 @@ Exemples:
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		var ve *ValidationError
+		var ce *ConfigError
+		switch {
+		case errors.As(err, &ve):
+			os.Exit(1)
+		case errors.As(err, &ce):
+			os.Exit(2)
+		default:
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(3)
+		}
 	}
 }
 
@@ -40,6 +62,14 @@ func init() {
 }
 
 func initConfig() {
+	// Injecter les defaults depuis config.Default()
+	defaults := config.Default()
+	viper.SetDefault("schemas", defaults.Schemas)
+	viper.SetDefault("output", defaults.Output)
+	viper.SetDefault("workers", defaults.Workers)
+	viper.SetDefault("verbose", defaults.Verbose)
+	viper.SetDefault("no_progress", defaults.NoProgress)
+
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {

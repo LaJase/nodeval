@@ -19,12 +19,21 @@ func (t *Terminal) Render(r Report) error {
 
 	for _, res := range r.Results {
 		for _, d := range res.Details {
-			fmt.Printf("%s %s : %s : %s\n",
-				color.RedString("❌"),
-				color.YellowString(d.File),
-				d.Path,
-				d.Message,
-			)
+			if t.Verbose {
+				fmt.Printf("%s %s\n    Path    : %s\n    Message : %s\n\n",
+					color.RedString("❌"),
+					color.YellowString(d.File),
+					d.Path,
+					d.Message,
+				)
+			} else {
+				fmt.Printf("%s %s : %s : %s\n",
+					color.RedString("❌"),
+					color.YellowString(d.File),
+					d.Path,
+					d.Message,
+				)
+			}
 		}
 	}
 

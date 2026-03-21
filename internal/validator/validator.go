@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fatih/color"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"jsnsch/internal/schema"
 )
@@ -101,9 +100,9 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 					if err != nil {
 						schemaFailed[t.typeNode] = true
 						resultsMap[t.typeNode].record(false, FileError{
-							File:    t.typeNode,
+							File:    fmt.Sprintf("json-schema-Node_%s.json", t.typeNode),
 							Path:    "",
-							Message: color.RedString("schéma manquant : %s", t.typeNode),
+							Message: fmt.Sprintf("schéma manquant : %s", t.typeNode),
 						})
 						if opts.OnProgress != nil {
 							opts.OnProgress(t.typeNode)

@@ -58,6 +58,6 @@ func init() {
 	schemaCmd.AddCommand(schemaListCmd)
 	schemaCmd.AddCommand(schemaCheckCmd)
 
-	schemaListCmd.Flags().String("schemas", ".", "Dossier contenant les schémas")
-	schemaCheckCmd.Flags().String("schemas", ".", "Dossier contenant les schémas")
+	// PersistentFlags héritée par list et check
+	schemaCmd.PersistentFlags().String("schemas", ".", "Dossier contenant les schémas")
 }

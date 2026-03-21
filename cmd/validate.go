@@ -3,7 +3,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"runtime"
 	"sort"
 	"time"
@@ -180,7 +179,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	// Exit code
 	for _, res := range results {
 		if res.Errors > 0 {
-			os.Exit(1)
+			return &ValidationError{Msg: fmt.Sprintf("%d fichier(s) invalide(s)", res.Errors)}
 		}
 	}
 	return nil
