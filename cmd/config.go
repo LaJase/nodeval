@@ -137,6 +137,7 @@ var configGetCmd = &cobra.Command{
 	Long: `Print the effective value of a config key (CLI flags > local config > global config > defaults).
 
 Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+Note: the "types" key is a list and is not supported by get/set/unset.
 
 Examples:
   nodeval config get schemas
@@ -147,7 +148,14 @@ Examples:
 		if err := validateKey(key); err != nil {
 			return err
 		}
-		fmt.Fprintln(cmd.OutOrStdout(), viper.Get(key))
+		switch validKeys[key] {
+		case "bool":
+			fmt.Fprintln(cmd.OutOrStdout(), viper.GetBool(key))
+		case "int":
+			fmt.Fprintln(cmd.OutOrStdout(), viper.GetInt(key))
+		default:
+			fmt.Fprintln(cmd.OutOrStdout(), viper.GetString(key))
+		}
 		return nil
 	},
 }

@@ -9,8 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func execConfigGet(key string) (string, error) {
-	cfgFile := viper.ConfigFileUsed()
+func execConfigGet(key string, cfgFile ...string) (string, error) {
 	viper.Reset()
 	viper.SetDefault("schemas", ".")
 	viper.SetDefault("output", "terminal")
@@ -18,8 +17,9 @@ func execConfigGet(key string) (string, error) {
 	viper.SetDefault("verbose", false)
 	viper.SetDefault("no_progress", false)
 	viper.SetDefault("schema_pattern", "json-schema-Node_{type}.json")
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
+
+	if len(cfgFile) > 0 && cfgFile[0] != "" {
+		viper.SetConfigFile(cfgFile[0])
 		_ = viper.ReadInConfig()
 	}
 
@@ -55,12 +55,7 @@ func TestConfigGet_FromFile(t *testing.T) {
 	path := filepath.Join(dir, ".nodeval.yaml")
 	_ = writeConfigFile(path, map[string]any{"output": "json"})
 
-	viper.Reset()
-	viper.SetDefault("output", "terminal")
-	viper.SetConfigFile(path)
-	_ = viper.ReadInConfig()
-
-	out, err := execConfigGet("output")
+	out, err := execConfigGet("output", path)
 	if err != nil {
 		t.Fatal(err)
 	}
