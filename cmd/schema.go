@@ -62,6 +62,10 @@ var schemaCheckCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("reading schemas directory: %w", err)
 			}
+			if len(detected) == 0 {
+				color.Yellow("No schemas found in %s", dir)
+				return nil
+			}
 			types = detected
 		} else {
 			if len(args) == 0 {
@@ -72,7 +76,7 @@ var schemaCheckCmd = &cobra.Command{
 
 		loader, err := schema.NewLocalLoader(dir, pattern)
 		if err != nil {
-			return fmt.Errorf("invalid schema_pattern: %w", err)
+			return &ConfigError{Msg: fmt.Sprintf("invalid schema_pattern: %v", err)}
 		}
 
 		var failed int
@@ -86,7 +90,7 @@ var schemaCheckCmd = &cobra.Command{
 			}
 		}
 		if failed > 0 {
-			return fmt.Errorf("%d invalid schema(s)", failed)
+			return &ConfigError{Msg: fmt.Sprintf("%d invalid schema(s)", failed)}
 		}
 		return nil
 	},

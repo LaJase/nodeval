@@ -156,7 +156,7 @@ nodeval schema check [type...] [flags]
 | `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder. |
 | `--all`                  | `false`          | Check all auto-detected types in the schemas directory. |
 
-Returns exit code `0` on success, `3` on failure.
+Returns exit code `0` on success, `2` on failure (missing or invalid schema).
 
 #### **Examples**
 

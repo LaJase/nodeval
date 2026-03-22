@@ -19,6 +19,9 @@ func writeSchema(t *testing.T, dir, typ string) {
 	}
 }
 
+// execSchemaCheck builds a minimal fresh Cobra tree per call to prevent flag
+// state from leaking between tests. It reuses only schemaCheckCmd.RunE; the
+// Use/Args fields are re-declared here and are not kept in sync automatically.
 func execSchemaCheck(dir string, args []string) error {
 	root := &cobra.Command{Use: "nodeval"}
 	parent := &cobra.Command{Use: "schema"}
