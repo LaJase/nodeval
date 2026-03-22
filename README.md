@@ -83,13 +83,14 @@ nodeval validate <directory> [flags]
 
 | Flag              | Default    | Description                                                       |
 | ----------------- | ---------- | ----------------------------------------------------------------- |
-| `--schemas <dir>` | `.`        | Directory containing the JSON schema files.                       |
-| `--types <list>`  | _(auto)_   | Types to validate (e.g. `M,R,I`). Auto-detected when omitted.     |
-| `--all`           | `false`    | Validate all auto-detected types, ignoring `--types`.             |
-| `--output <fmt>`  | `terminal` | Output format: `terminal`, `json`, or `junit`.                    |
-| `--verbose`       | `false`    | Print the full JSON path and message for each invalid file.       |
-| `--workers <n>`   | `0`        | Number of parallel workers. `0` means one worker per logical CPU. |
-| `--no-progress`   | `false`    | Suppress the per-type progress bars (recommended in CI/CD).       |
+| `--schemas <dir>`         | `.`              | Directory containing the JSON schema files.                       |
+| `--schema-pattern <pat>`  | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder.             |
+| `--types <list>`          | _(auto)_         | Types to validate (e.g. `M,R,I`). Auto-detected when omitted.     |
+| `--all`                   | `false`          | Validate all auto-detected types, ignoring `--types`.             |
+| `--output <fmt>`          | `terminal`       | Output format: `terminal`, `json`, or `junit`.                    |
+| `--verbose`               | `false`          | Print the full JSON path and message for each invalid file.       |
+| `--workers <n>`           | `0`              | Number of parallel workers. `0` means one worker per logical CPU. |
+| `--no-progress`           | `false`          | Suppress the per-type progress bars (recommended in CI/CD).       |
 
 #### **Examples**
 
@@ -123,9 +124,10 @@ Lists every schema detected in the `--schemas` directory and shows the type name
 nodeval schema list --schemas ./schemas
 ```
 
-| Flag              | Default | Description                            |
-| ----------------- | ------- | -------------------------------------- |
-| `--schemas <dir>` | `.`     | Directory to inspect for schema files. |
+| Flag                     | Default          | Description                                           |
+| ------------------------ | ---------------- | ----------------------------------------------------- |
+| `--schemas <dir>`        | `.`              | Directory to inspect for schema files.                |
+| `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder. |
 
 #### **Example output**
 
@@ -147,9 +149,10 @@ a full validation.
 nodeval schema check M --schemas ./schemas
 ```
 
-| Flag              | Default | Description                           |
-| ----------------- | ------- | ------------------------------------- |
-| `--schemas <dir>` | `.`     | Directory containing the schema file. |
+| Flag                     | Default          | Description                                           |
+| ------------------------ | ---------------- | ----------------------------------------------------- |
+| `--schemas <dir>`        | `.`              | Directory containing the schema file.                 |
+| `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder. |
 
 Returns exit code `0` on success, `3` on failure.
 
@@ -180,12 +183,13 @@ nodeval config show
 ```text
 Config file : ./.nodeval.yaml
 
-  schemas     : ./schemas
-  types       : []
-  output      : terminal
-  verbose     : false
-  workers     : 0
-  no-progress : false
+  schemas        : ./schemas
+  schema-pattern : json-schema-Node_{type}.json
+  types          : []
+  output         : terminal
+  verbose        : false
+  workers        : 0
+  no-progress    : false
 ```
 
 ---
@@ -208,9 +212,13 @@ Generate this file with `nodeval config init`, then edit as needed.
 ```yaml
 # nodeval configuration
 
-# Directory containing the JSON schema files (json-schema-Node_<TYPE>.json)
+# Directory containing the JSON schema files
 # Default: . (current directory)
 schemas: ./schemas
+
+# Schema filename pattern. Use {type} as placeholder for the type name.
+# Default: json-schema-Node_{type}.json
+# schema_pattern: json-schema-Node_{type}.json
 
 # Types to validate. Leave commented out for automatic detection from the
 # schemas directory. Explicit list takes effect when --all is not used.
@@ -236,14 +244,15 @@ workers: 0
 no_progress: false
 ```
 
-| Key           | Type   | Default    | Description                                           |
-| ------------- | ------ | ---------- | ----------------------------------------------------- |
-| `schemas`     | string | `.`        | Path to the directory holding schema files.           |
-| `types`       | list   | _(empty)_  | Explicit list of types; auto-detected when empty.     |
-| `output`      | string | `terminal` | Report format: `terminal`, `json`, or `junit`.        |
-| `verbose`     | bool   | `false`    | Include full JSON path and message in error output.   |
-| `workers`     | int    | `0`        | Worker pool size; `0` defaults to `runtime.NumCPU()`. |
-| `no_progress` | bool   | `false`    | Suppress progress bars.                               |
+| Key              | Type   | Default                          | Description                                           |
+| ---------------- | ------ | -------------------------------- | ----------------------------------------------------- |
+| `schemas`        | string | `.`                              | Path to the directory holding schema files.           |
+| `schema_pattern` | string | `json-schema-Node_{type}.json`   | Schema filename pattern (`{type}` = type name).       |
+| `types`          | list   | _(empty)_                        | Explicit list of types; auto-detected when empty.     |
+| `output`         | string | `terminal`                       | Report format: `terminal`, `json`, or `junit`.        |
+| `verbose`        | bool   | `false`                          | Include full JSON path and message in error output.   |
+| `workers`        | int    | `0`                              | Worker pool size; `0` defaults to `runtime.NumCPU()`. |
+| `no_progress`    | bool   | `false`                          | Suppress progress bars.                               |
 
 ---
 
@@ -253,7 +262,11 @@ no_progress: false
 
 ### Schema files
 
-Schema files must be placed in the schemas directory (default `.`, overridable with `--schemas`) and named:
+Schema files must be placed in the schemas directory (default `.`, overridable with `--schemas`). The filename pattern
+defaults to `json-schema-Node_{type}.json` and can be changed with `--schema-pattern` or `schema_pattern` in
+`.nodeval.yaml`.
+
+Default pattern:
 
 ```text
 json-schema-Node_<TYPE>.json
@@ -359,7 +372,7 @@ Compatible with GitLab CI, Jenkins, and any JUnit-aware test reporter.
 <testsuites>
   <testsuite name="Type M" tests="143" failures="1">
     <testcase name="valid_file_1"></testcase>
-    <!-- ... one <testcase> per valid file ... -->
+    <!-- ... One <testcase> per valid file ... -->
     <testcase name="bad_file_M.json">
       <failure message="root &gt; SomeDefinition">field xyz is required</failure>
     </testcase>
