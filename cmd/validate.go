@@ -46,6 +46,7 @@ func init() {
 	f.Bool("verbose", false, "Show full validation error details")
 	f.Int("workers", 0, "Number of workers (0 = NumCPU)")
 	f.Bool("no-progress", false, "Disable progress bars")
+	f.String("schema-pattern", "", "Schema filename pattern (e.g. schema_{type}.json)")
 
 	_ = viper.BindPFlags(f)
 }
@@ -59,11 +60,15 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	verbose := viper.GetBool("verbose")
 	workers := viper.GetInt("workers")
 	noProgress := viper.GetBool("no-progress")
+	schemaPattern := viper.GetString("schema-pattern")
+	if schemaPattern == "" {
+		schemaPattern = viper.GetString("schema_pattern")
+	}
 
 	// Resolve types
 	var types []string
 	if allFlag || len(typesFlag) == 0 {
-		detected, err := schema.DetectTypes(schemasDir, "json-schema-Node_{type}.json")
+		detected, err := schema.DetectTypes(schemasDir, schemaPattern)
 		if err != nil {
 			return fmt.Errorf("type detection: %w", err)
 		}
@@ -145,9 +150,9 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	start := time.Now()
-	loader, err := schema.NewLocalLoader(schemasDir, "json-schema-Node_{type}.json")
+	loader, err := schema.NewLocalLoader(schemasDir, schemaPattern)
 	if err != nil {
-		return fmt.Errorf("schema loader: %w", err)
+		return &ConfigError{Msg: fmt.Sprintf("invalid schema_pattern: %v", err)}
 	}
 	results := validator.Run(filesByType, loader, validator.Options{
 		Workers: numWorkers,
