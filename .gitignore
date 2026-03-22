@@ -10,6 +10,10 @@
 /dist/
 /bin/
 
+# local files
+.nodeval.yml
+.nodeval.yaml
+
 # Test artifacts
 *.test
 *.out
@@ -19,6 +23,9 @@ coverage.html
 # Go workspace
 go.work
 go.work.sum
+
+# Claude Code
+.claude/
 
 # Editor and OS
 .DS_Store
