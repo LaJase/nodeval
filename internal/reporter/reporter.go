@@ -2,8 +2,9 @@
 package reporter
 
 import (
-	"nodeval/internal/validator"
 	"time"
+
+	"nodeval/internal/validator"
 )
 
 type Report struct {

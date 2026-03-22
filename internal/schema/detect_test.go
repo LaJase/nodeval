@@ -16,7 +16,7 @@ func TestDetectTypes(t *testing.T) {
 		"json-schema-Node_R.json",
 		"unrelated.json",
 	} {
-		_ = os.WriteFile(filepath.Join(dir, name), []byte(`{}`), 0644)
+		_ = os.WriteFile(filepath.Join(dir, name), []byte(`{}`), 0o644)
 	}
 
 	types, err := schema.DetectTypes(dir, "json-schema-Node_{type}.json")
@@ -34,7 +34,7 @@ func TestDetectTypes(t *testing.T) {
 func TestDetectTypes_CustomPattern(t *testing.T) {
 	dir := t.TempDir()
 	for _, name := range []string{"schema_M.json", "schema_R.json", "unrelated.json"} {
-		_ = os.WriteFile(filepath.Join(dir, name), []byte(`{}`), 0644)
+		_ = os.WriteFile(filepath.Join(dir, name), []byte(`{}`), 0o644)
 	}
 
 	types, err := schema.DetectTypes(dir, "schema_{type}.json")

@@ -10,8 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
 	"nodeval/internal/schema"
+
+	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 type FileError struct {

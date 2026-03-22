@@ -8,8 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
 	"nodeval/internal/validator"
+
+	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 // stubLoader is a test double that returns a pre-compiled schema.
@@ -26,7 +27,7 @@ func makeSchema(t *testing.T) *jsonschema.Schema {
 	compiler := jsonschema.NewCompiler()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "s.json")
-	_ = os.WriteFile(path, []byte(`{"type":"object","properties":{"id":{"type":"integer"}},"required":["id"]}`), 0644)
+	_ = os.WriteFile(path, []byte(`{"type":"object","properties":{"id":{"type":"integer"}},"required":["id"]}`), 0o644)
 	sch, err := compiler.Compile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +39,7 @@ func writeJSON(t *testing.T, dir, name string, v any) string {
 	t.Helper()
 	b, _ := json.Marshal(v)
 	p := filepath.Join(dir, name)
-	_ = os.WriteFile(p, b, 0644)
+	_ = os.WriteFile(p, b, 0o644)
 	return p
 }
 

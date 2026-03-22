@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"nodeval/internal/schema"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"nodeval/internal/schema"
 )
 
 var schemaCmd = &cobra.Command{

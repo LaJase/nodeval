@@ -18,7 +18,7 @@ func TestScanFiles(t *testing.T) {
 		"unrelated.txt",
 	}
 	for _, f := range files {
-		_ = os.WriteFile(filepath.Join(dir, f), []byte(`{}`), 0644)
+		_ = os.WriteFile(filepath.Join(dir, f), []byte(`{}`), 0o644)
 	}
 
 	result, err := scanner.ScanFiles(dir, []string{"M", "R"})
@@ -44,7 +44,7 @@ func TestScanFiles_MultipleUnderscores(t *testing.T) {
 		"_M.json",            // leading underscore
 	}
 	for _, f := range files {
-		_ = os.WriteFile(filepath.Join(dir, f), []byte(`{}`), 0644)
+		_ = os.WriteFile(filepath.Join(dir, f), []byte(`{}`), 0o644)
 	}
 
 	result, err := scanner.ScanFiles(dir, []string{"M", "MR"})

@@ -24,7 +24,7 @@ func TestLocalLoaderMissing(t *testing.T) {
 func TestLocalLoaderValid(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte(`{"type": "object"}`)
-	_ = os.WriteFile(filepath.Join(dir, "json-schema-Node_M.json"), content, 0644)
+	_ = os.WriteFile(filepath.Join(dir, "json-schema-Node_M.json"), content, 0o644)
 
 	loader, err := schema.NewLocalLoader(dir, "json-schema-Node_{type}.json")
 	if err != nil {
@@ -42,7 +42,7 @@ func TestLocalLoaderValid(t *testing.T) {
 func TestLocalLoader_CachesSchema(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte(`{"type": "object"}`)
-	_ = os.WriteFile(filepath.Join(dir, "json-schema-Node_M.json"), content, 0644)
+	_ = os.WriteFile(filepath.Join(dir, "json-schema-Node_M.json"), content, 0o644)
 
 	loader, err := schema.NewLocalLoader(dir, "json-schema-Node_{type}.json")
 	if err != nil {
@@ -75,7 +75,7 @@ func TestLocalLoader_CachesSchema(t *testing.T) {
 
 func TestLocalLoader_CustomPattern(t *testing.T) {
 	dir := t.TempDir()
-	_ = os.WriteFile(filepath.Join(dir, "schema_M.json"), []byte(`{"type": "object"}`), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "schema_M.json"), []byte(`{"type": "object"}`), 0o644)
 
 	loader, err := schema.NewLocalLoader(dir, "schema_{type}.json")
 	if err != nil {

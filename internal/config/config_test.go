@@ -31,7 +31,7 @@ func TestDefaultSchemaPattern(t *testing.T) {
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte("output: json\nworkers: 4\nverbose: true\n")
-	_ = os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0644)
+	_ = os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0o644)
 
 	cfg, err := config.LoadFrom(filepath.Join(dir, ".nodeval.yaml"))
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 func writeSchema(t *testing.T, dir, typ string) {
 	t.Helper()
 	name := "json-schema-Node_" + typ + ".json"
-	err := os.WriteFile(filepath.Join(dir, name), []byte(`{"type": "object"}`), 0644)
+	err := os.WriteFile(filepath.Join(dir, name), []byte(`{"type": "object"}`), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}

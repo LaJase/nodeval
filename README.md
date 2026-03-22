@@ -81,16 +81,16 @@ Recursively scans `<directory>` for files matching `*_<TYPE>.json` and validates
 nodeval validate <directory> [flags]
 ```
 
-| Flag              | Default    | Description                                                       |
-| ----------------- | ---------- | ----------------------------------------------------------------- |
-| `--schemas <dir>`         | `.`              | Directory containing the JSON schema files.                       |
-| `--schema-pattern <pat>`  | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder.             |
-| `--types <list>`          | _(auto)_         | Types to validate (e.g. `M,R,I`). Auto-detected when omitted.     |
-| `--all`                   | `false`          | Validate all auto-detected types, ignoring `--types`.             |
-| `--output <fmt>`          | `terminal`       | Output format: `terminal`, `json`, or `junit`.                    |
-| `--verbose`               | `false`          | Print the full JSON path and message for each invalid file.       |
-| `--workers <n>`           | `0`              | Number of parallel workers. `0` means one worker per logical CPU. |
-| `--no-progress`           | `false`          | Suppress the per-type progress bars (recommended in CI/CD).       |
+| Flag                     | Default          | Description                                                       |
+| ------------------------ | ---------------- | ----------------------------------------------------------------- |
+| `--schemas <dir>`        | `.`              | Directory containing the JSON schema files.                       |
+| `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder.             |
+| `--types <list>`         | _(auto)_         | Types to validate (e.g. `M,R,I`). Auto-detected when omitted.     |
+| `--all`                  | `false`          | Validate all auto-detected types, ignoring `--types`.             |
+| `--output <fmt>`         | `terminal`       | Output format: `terminal`, `json`, or `junit`.                    |
+| `--verbose`              | `false`          | Print the full JSON path and message for each invalid file.       |
+| `--workers <n>`          | `0`              | Number of parallel workers. `0` means one worker per logical CPU. |
+| `--no-progress`          | `false`          | Suppress the per-type progress bars (recommended in CI/CD).       |
 
 #### **Examples**
 
@@ -150,10 +150,10 @@ full validation.
 nodeval schema check [type...] [flags]
 ```
 
-| Flag                     | Default          | Description                                           |
-| ------------------------ | ---------------- | ----------------------------------------------------- |
-| `--schemas <dir>`        | `.`              | Directory containing the schema file.                 |
-| `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder. |
+| Flag                     | Default          | Description                                             |
+| ------------------------ | ---------------- | ------------------------------------------------------- |
+| `--schemas <dir>`        | `.`              | Directory containing the schema file.                   |
+| `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder.   |
 | `--all`                  | `false`          | Check all auto-detected types in the schemas directory. |
 
 Returns exit code `0` on success, `2` on failure (missing or invalid schema).
@@ -259,15 +259,15 @@ workers: 0
 no_progress: false
 ```
 
-| Key              | Type   | Default                          | Description                                           |
-| ---------------- | ------ | -------------------------------- | ----------------------------------------------------- |
-| `schemas`        | string | `.`                              | Path to the directory holding schema files.           |
-| `schema_pattern` | string | `json-schema-Node_{type}.json`   | Schema filename pattern (`{type}` = type name).       |
-| `types`          | list   | _(empty)_                        | Explicit list of types; auto-detected when empty.     |
-| `output`         | string | `terminal`                       | Report format: `terminal`, `json`, or `junit`.        |
-| `verbose`        | bool   | `false`                          | Include full JSON path and message in error output.   |
-| `workers`        | int    | `0`                              | Worker pool size; `0` defaults to `runtime.NumCPU()`. |
-| `no_progress`    | bool   | `false`                          | Suppress progress bars.                               |
+| Key              | Type   | Default                        | Description                                           |
+| ---------------- | ------ | ------------------------------ | ----------------------------------------------------- |
+| `schemas`        | string | `.`                            | Path to the directory holding schema files.           |
+| `schema_pattern` | string | `json-schema-Node_{type}.json` | Schema filename pattern (`{type}` = type name).       |
+| `types`          | list   | _(empty)_                      | Explicit list of types; auto-detected when empty.     |
+| `output`         | string | `terminal`                     | Report format: `terminal`, `json`, or `junit`.        |
+| `verbose`        | bool   | `false`                        | Include full JSON path and message in error output.   |
+| `workers`        | int    | `0`                            | Worker pool size; `0` defaults to `runtime.NumCPU()`. |
+| `no_progress`    | bool   | `false`                        | Suppress progress bars.                               |
 
 ---
 

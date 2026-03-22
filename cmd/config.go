@@ -52,7 +52,7 @@ no_progress: false
 			color.Yellow("⚠️  %s already exists. Remove it before running init again.", filename)
 			return nil
 		}
-		if err := os.WriteFile(filename, []byte(template), 0644); err != nil {
+		if err := os.WriteFile(filename, []byte(template), 0o644); err != nil {
 			return fmt.Errorf("unable to create %s: %w", filename, err)
 		}
 		color.Green("✅ %s created successfully.", filename)
