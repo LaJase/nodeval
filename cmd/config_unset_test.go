@@ -31,6 +31,10 @@ func TestConfigUnset_AbsentKey_NoError(t *testing.T) {
 	if err := runConfigUnset(path, "output"); err != nil {
 		t.Errorf("expected no error for absent key, got: %v", err)
 	}
+	m, _ := readConfigFile(path)
+	if m["schemas"] != "." {
+		t.Errorf("expected file to be unchanged, got schemas=%v", m["schemas"])
+	}
 }
 
 func TestConfigUnset_MissingFile(t *testing.T) {

@@ -167,6 +167,9 @@ func runConfigUnset(path, key string) error {
 	if err := validateKey(key); err != nil {
 		return err
 	}
+	// Explicitly check file existence: readConfigFile masks ErrNotExist and returns
+	// an empty map, which would silently create the file on write. For unset, we
+	// want an error when the file doesn't exist (unlike set, which creates it).
 	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("config file not found: %s", path)
 	}
