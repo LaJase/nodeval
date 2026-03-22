@@ -25,6 +25,10 @@ var configInitCmd = &cobra.Command{
 # Directory containing JSON schemas (json-schema-Node_<TYPE>.json)
 schemas: .
 
+# Schema filename pattern. Use {type} as placeholder for the type name.
+# Default: json-schema-Node_{type}.json
+# schema_pattern: json-schema-Node_{type}.json
+
 # Types to validate. If empty, auto-detected from the schemas directory.
 # types:
 #   - M
@@ -65,12 +69,13 @@ var configShowCmd = &cobra.Command{
 			cfgUsed = "(no config file found)"
 		}
 		fmt.Printf("Config file : %s\n\n", color.CyanString(cfgUsed))
-		fmt.Printf("  schemas     : %s\n", viper.GetString("schemas"))
-		fmt.Printf("  types       : %v\n", viper.GetStringSlice("types"))
-		fmt.Printf("  output      : %s\n", viper.GetString("output"))
-		fmt.Printf("  verbose     : %v\n", viper.GetBool("verbose"))
-		fmt.Printf("  workers     : %d\n", viper.GetInt("workers"))
-		fmt.Printf("  no-progress : %v\n", viper.GetBool("no-progress"))
+		fmt.Printf("  schemas        : %s\n", viper.GetString("schemas"))
+		fmt.Printf("  schema-pattern : %s\n", viper.GetString("schema_pattern"))
+		fmt.Printf("  types          : %v\n", viper.GetStringSlice("types"))
+		fmt.Printf("  output         : %s\n", viper.GetString("output"))
+		fmt.Printf("  verbose        : %v\n", viper.GetBool("verbose"))
+		fmt.Printf("  workers        : %d\n", viper.GetInt("workers"))
+		fmt.Printf("  no-progress    : %v\n", viper.GetBool("no-progress"))
 	},
 }
 
