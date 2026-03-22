@@ -48,10 +48,12 @@ type task struct {
 	typeNode string
 }
 
+const progressBatchSize = 50
+
 type Options struct {
 	Workers    int
 	Verbose    bool
-	OnProgress func(typeNode string)
+	OnProgress func(typeNode string, count int)
 }
 
 // Run validates all files in filesByType using the provided schema loader.
@@ -78,15 +80,24 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 	}()
 
 	var wg sync.WaitGroup
-	for i := 0; i < numWorkers; i++ {
+	for range numWorkers {
 		wg.Go(func() {
 			schemaCache := make(map[string]*jsonschema.Schema)
 			schemaFailed := make(map[string]bool)
+			pendingProgress := make(map[string]int)
+
+			flush := func(typeNode string) {
+				if opts.OnProgress != nil && pendingProgress[typeNode] > 0 {
+					opts.OnProgress(typeNode, pendingProgress[typeNode])
+					pendingProgress[typeNode] = 0
+				}
+			}
 
 			for t := range taskChan {
 				if schemaFailed[t.typeNode] {
-					if opts.OnProgress != nil {
-						opts.OnProgress(t.typeNode)
+					pendingProgress[t.typeNode]++
+					if pendingProgress[t.typeNode] >= progressBatchSize {
+						flush(t.typeNode)
 					}
 					continue
 				}
@@ -102,8 +113,9 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 							Path:    "",
 							Message: fmt.Sprintf("missing schema: %s", t.typeNode),
 						})
-						if opts.OnProgress != nil {
-							opts.OnProgress(t.typeNode)
+						pendingProgress[t.typeNode]++
+						if pendingProgress[t.typeNode] >= progressBatchSize {
+							flush(t.typeNode)
 						}
 						continue
 					}
@@ -112,9 +124,15 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 
 				fe, ok := validateFile(sch, t.path)
 				resultsMap[t.typeNode].record(ok, fe)
-				if opts.OnProgress != nil {
-					opts.OnProgress(t.typeNode)
+				pendingProgress[t.typeNode]++
+				if pendingProgress[t.typeNode] >= progressBatchSize {
+					flush(t.typeNode)
 				}
+			}
+
+			// Flush remaining counts at end of worker.
+			for typeNode := range pendingProgress {
+				flush(typeNode)
 			}
 		})
 	}

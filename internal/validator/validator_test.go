@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
@@ -62,6 +63,39 @@ func TestRun_AllValidFiles(t *testing.T) {
 	}
 	if results[0].Errors != 0 {
 		t.Errorf("expected 0 errors, got %d", results[0].Errors)
+	}
+}
+
+func TestRun_OnProgressTotalMatchesFileCount(t *testing.T) {
+	dir := t.TempDir()
+	sch := makeSchema(t)
+	loader := &stubLoader{schema: sch}
+
+	const n = 200
+	files := make([]string, n)
+	for i := range files {
+		files[i] = writeJSON(t, dir, fmt.Sprintf("file_%d_T.json", i), map[string]int{"id": i})
+	}
+
+	var mu sync.Mutex
+	total := 0
+	calls := 0
+
+	validator.Run(map[string][]string{"T": files}, loader, validator.Options{
+		Workers: 4,
+		OnProgress: func(_ string, count int) {
+			mu.Lock()
+			total += count
+			calls++
+			mu.Unlock()
+		},
+	})
+
+	if total != n {
+		t.Errorf("OnProgress total = %d, want %d", total, n)
+	}
+	if calls >= n {
+		t.Errorf("OnProgress called %d times for %d files: batching not working", calls, n)
 	}
 }
 

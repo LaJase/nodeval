@@ -143,9 +143,9 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	results := validator.Run(filesByType, schema.NewLocalLoader(schemasDir), validator.Options{
 		Workers: numWorkers,
 		Verbose: verbose,
-		OnProgress: func(typeNode string) {
+		OnProgress: func(typeNode string, count int) {
 			if b, ok := bars[typeNode]; ok {
-				b.Increment()
+				b.IncrBy(count)
 			}
 		},
 	})
