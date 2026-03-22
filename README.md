@@ -209,6 +209,72 @@ Config file : ./.nodeval.yaml
 
 ---
 
+### `nodeval config set <key> <value>`
+
+Sets a configuration key in the local `.nodeval.yaml` or the global `~/.config/nodeval/.nodeval.yaml`.
+
+```bash
+nodeval config set <key> <value> [--global]
+```
+
+| Flag       | Default | Description                      |
+| ---------- | ------- | -------------------------------- |
+| `--global` | `false` | Write to the global config file. |
+
+Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
+
+#### **Examples**
+
+```bash
+nodeval config set schemas ./schemas
+nodeval config set output json
+nodeval config set --global workers 8
+```
+
+---
+
+### `nodeval config get <key>`
+
+Prints the effective value of a config key (CLI flags > local config > global config > defaults).
+
+```bash
+nodeval config get <key>
+```
+
+Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
+
+#### **Examples**
+
+```bash
+nodeval config get schemas
+nodeval config get output
+```
+
+---
+
+### `nodeval config unset <key>`
+
+Removes a key from the local or global config file. Exits successfully with a warning if the key is not set.
+
+```bash
+nodeval config unset <key> [--global]
+```
+
+| Flag       | Default | Description                      |
+| ---------- | ------- | -------------------------------- |
+| `--global` | `false` | Write to the global config file. |
+
+Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
+
+#### **Examples**
+
+```bash
+nodeval config unset verbose
+nodeval config unset --global output
+```
+
+---
+
 ## Configuration
 
 `nodeval` uses [Viper](https://github.com/spf13/viper) for configuration management.
