@@ -224,7 +224,7 @@ nodeval config set <key> <value> [--global]
 | ---------- | ------- | -------------------------------- |
 | `--global` | `false` | Write to the global config file. |
 
-Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
+Valid keys: `directory`, `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
 
 #### **Examples**
 
@@ -232,6 +232,7 @@ Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_pro
 nodeval config set schemas ./schemas
 nodeval config set output json
 nodeval config set --global workers 8
+nodeval config set directory ./data
 ```
 
 ---
@@ -244,13 +245,14 @@ Prints the effective value of a config key (CLI flags > local config > global co
 nodeval config get <key>
 ```
 
-Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
+Valid keys: `directory`, `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
 
 #### **Examples**
 
 ```bash
 nodeval config get schemas
 nodeval config get output
+nodeval config get directory
 ```
 
 ---
@@ -267,13 +269,14 @@ nodeval config unset <key> [--global]
 | ---------- | ------- | -------------------------------- |
 | `--global` | `false` | Write to the global config file. |
 
-Valid keys: `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
+Valid keys: `directory`, `schemas`, `schema_pattern`, `output`, `verbose`, `workers`, `no_progress`
 
 #### **Examples**
 
 ```bash
 nodeval config unset verbose
 nodeval config unset --global output
+nodeval config unset directory
 ```
 
 ---
@@ -511,15 +514,43 @@ $env:CGO_ENABLED=0; $env:GOOS="windows"; $env:GOARCH="arm64"
 go build -ldflags="-s -w" -trimpath -o nodeval-arm64.exe .
 ```
 
-### macOS
+---
 
-```bash
-# Intel
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o nodeval .
+## Troubleshooting
 
-# Apple Silicon
-CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o nodeval-arm64 .
-```
+### `Error: no types found in <dir>`
+
+`nodeval` detected no schema files in the schemas directory.
+
+- Check that `--schemas` (or `schemas` in config) points to the right directory.
+- Run `nodeval schema list --schemas <dir>` to see what is detected.
+- Check that schema filenames match the pattern (default: `json-schema-Node_{type}.json`). If you use a custom pattern, set `--schema-pattern` or `schema_pattern` in `.nodeval.yaml`.
+
+### `⚠️ No files found for the requested types`
+
+The schemas were found but no data files matched the expected naming pattern.
+
+- Data files must end with `_<TYPE>.json` where `<TYPE>` matches a detected schema type. Example: `export_2024_M.json` matches type `M`.
+- The `<TYPE>` is extracted from the **last** `_`-separated segment before `.json`.
+- Run `nodeval schema list --schemas <dir>` to see which types are recognised, then verify your filenames use those exact suffixes.
+
+### `Error: <n> invalid schema(s)` (from `schema check`)
+
+One or more schema files could not be parsed.
+
+- Run `nodeval schema check --all --schemas <dir>` to identify which schemas fail.
+- Validate the schema file manually (e.g. with `jq . <file>` to confirm it is valid JSON).
+
+### `Error: no directory specified`
+
+The data directory was not provided and `directory` is not set in config.
+
+- Pass the directory as an argument: `nodeval validate ./data --all`
+- Or persist it: `nodeval config set directory ./data`
+
+### Slow performance on Windows
+
+Opening thousands of small files triggers Windows Defender's real-time protection by default. Exclude the data and schemas directories from scanning in Windows Security settings, or run with a reduced dataset to confirm the tool itself is not at fault.
 
 ---
 
