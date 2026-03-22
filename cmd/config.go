@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -17,13 +18,21 @@ var configCmd = &cobra.Command{
 	Short: "Manage nodeval configuration",
 	Long: `Manage nodeval configuration.
 
-Commands that write to a config file (set, unset) support --global to target
-the global config (~/.config/nodeval/.nodeval.yaml) instead of the local .nodeval.yaml.`,
+Use --global to target the global config (~/.config/nodeval/.nodeval.yaml)
+instead of the local .nodeval.yaml. Supported by: init, set, unset.`,
 }
 
 var configInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Generate a sample .nodeval.yaml file in the current directory",
+	Short: "Generate a sample .nodeval.yaml in the current directory or global config",
+	Long: `Generate a commented .nodeval.yaml template.
+
+Without --global, the file is created in the current working directory.
+With --global, it is created at ~/.config/nodeval/.nodeval.yaml.
+
+Examples:
+  nodeval config init
+  nodeval config init --global`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		const template = `# nodeval configuration
 # Documentation: nodeval --help
@@ -53,10 +62,17 @@ workers: 0
 # Disable progress bars (useful in CI/CD)
 no_progress: false
 `
-		const filename = ".nodeval.yaml"
+		global, _ := cmd.Flags().GetBool("global")
+		filename, err := resolveConfigPath(global)
+		if err != nil {
+			return &ConfigError{Msg: err.Error()}
+		}
 		if _, err := os.Stat(filename); err == nil {
 			color.Yellow("⚠️  %s already exists. Remove it before running init again.", filename)
 			return nil
+		}
+		if err := os.MkdirAll(filepath.Dir(filename), 0o755); err != nil {
+			return fmt.Errorf("unable to create directory: %w", err)
 		}
 		if err := os.WriteFile(filename, []byte(template), 0o644); err != nil {
 			return fmt.Errorf("unable to create %s: %w", filename, err)
@@ -227,6 +243,5 @@ func init() {
 	configCmd.AddCommand(configSetCmd)
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configUnsetCmd)
-	configSetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
-	configUnsetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
+	configCmd.PersistentFlags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
 }
