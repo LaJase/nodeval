@@ -69,6 +69,7 @@ func initConfig() {
 	viper.SetDefault("workers", defaults.Workers)
 	viper.SetDefault("verbose", defaults.Verbose)
 	viper.SetDefault("no_progress", defaults.NoProgress)
+	viper.SetDefault("schema_pattern", defaults.SchemaPattern)
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
