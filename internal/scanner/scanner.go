@@ -9,18 +9,28 @@ import (
 
 // ScanFiles walks dir recursively and returns files matching *_<type>.json per type.
 func ScanFiles(dir string, types []string) (map[string][]string, error) {
+	typeSet := make(map[string]struct{}, len(types))
+	for _, t := range types {
+		typeSet[t] = struct{}{}
+	}
+
 	filesByType := make(map[string][]string)
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || !strings.HasSuffix(path, ".json") {
+		name := d.Name()
+		if d.IsDir() || !strings.HasSuffix(name, ".json") {
 			return nil
 		}
-		for _, t := range types {
-			if strings.HasSuffix(d.Name(), "_"+t+".json") {
-				filesByType[t] = append(filesByType[t], path)
-			}
+		base := name[:len(name)-5] // strip ".json"
+		idx := strings.LastIndex(base, "_")
+		if idx < 0 {
+			return nil
+		}
+		t := base[idx+1:]
+		if _, ok := typeSet[t]; ok {
+			filesByType[t] = append(filesByType[t], path)
 		}
 		return nil
 	})

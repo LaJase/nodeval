@@ -32,14 +32,26 @@ type result struct {
 	TypeResult
 }
 
-func (r *result) record(ok bool, fe FileError) {
+func (r *result) merge(b *localBatch) {
 	r.mu.Lock()
-	defer r.mu.Unlock()
+	r.Success += b.success
+	r.Errors += b.errors
+	r.Details = append(r.Details, b.details...)
+	r.mu.Unlock()
+}
+
+type localBatch struct {
+	success int
+	errors  int
+	details []FileError
+}
+
+func (b *localBatch) add(ok bool, fe FileError) {
 	if ok {
-		r.Success++
+		b.success++
 	} else {
-		r.Errors++
-		r.Details = append(r.Details, fe)
+		b.errors++
+		b.details = append(b.details, fe)
 	}
 }
 
@@ -84,7 +96,11 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 		wg.Go(func() {
 			schemaCache := make(map[string]*jsonschema.Schema)
 			schemaFailed := make(map[string]bool)
-			pendingProgress := make(map[string]int)
+			batches := make(map[string]*localBatch, len(filesByType))
+			for typeNode := range filesByType {
+				batches[typeNode] = &localBatch{}
+			}
+			pendingProgress := make(map[string]int, len(filesByType))
 
 			flush := func(typeNode string) {
 				if opts.OnProgress != nil && pendingProgress[typeNode] > 0 {
@@ -108,7 +124,7 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 					sch, err = loader.Load(t.typeNode)
 					if err != nil {
 						schemaFailed[t.typeNode] = true
-						resultsMap[t.typeNode].record(false, FileError{
+						batches[t.typeNode].add(false, FileError{
 							File:    fmt.Sprintf("json-schema-Node_%s.json", t.typeNode),
 							Path:    "",
 							Message: fmt.Sprintf("missing schema: %s", t.typeNode),
@@ -123,16 +139,18 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 				}
 
 				fe, ok := validateFile(sch, t.path)
-				resultsMap[t.typeNode].record(ok, fe)
+				batches[t.typeNode].add(ok, fe)
 				pendingProgress[t.typeNode]++
 				if pendingProgress[t.typeNode] >= progressBatchSize {
 					flush(t.typeNode)
 				}
 			}
 
-			// Flush remaining counts at end of worker.
 			for typeNode := range pendingProgress {
 				flush(typeNode)
+			}
+			for typeNode, b := range batches {
+				resultsMap[typeNode].merge(b)
 			}
 		})
 	}
@@ -148,14 +166,13 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 	baseName := filepath.Base(fPath)
 
-	f, err := os.Open(fPath)
+	data, err := os.ReadFile(fPath)
 	if err != nil {
 		return FileError{File: baseName, Message: "read error"}, false
 	}
-	defer f.Close()
 
 	var v any
-	if err := json.NewDecoder(f).Decode(&v); err != nil {
+	if err := json.Unmarshal(data, &v); err != nil {
 		return FileError{File: baseName, Message: "invalid JSON"}, false
 	}
 
@@ -174,7 +191,7 @@ func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 }
 
 func extractError(ve *jsonschema.ValidationError) (path, msg string) {
-	var contexts []string
+	contexts := make([]string, 0, 4)
 	curr := ve
 	for len(curr.Causes) > 0 {
 		m := curr.Message

@@ -46,6 +46,7 @@ func (j *JSON) Render(r Report) error {
 			Type:    res.Type,
 			Success: res.Success,
 			Errors:  res.Errors,
+			Details: make([]jsonDetail, 0, len(res.Details)),
 		}
 		for _, d := range res.Details {
 			tr.Details = append(tr.Details, jsonDetail{File: d.File, Path: d.Path, Message: d.Message})
