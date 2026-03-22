@@ -81,15 +81,15 @@ Recursively scans `<directory>` for files matching `*_<TYPE>.json` and validates
 nodeval validate <directory> [flags]
 ```
 
-| Flag              | Default    | Description                                                                                                            |
-| ----------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `--schemas <dir>` | `.`        | Directory containing the JSON schema files.                                                                            |
-| `--types <list>`  | _(auto)_   | Comma-separated list of types to validate (e.g. `M,R,I`). When omitted the schemas directory is scanned automatically. |
-| `--all`           | `false`    | Force validation of all auto-detected types, ignoring `--types`.                                                       |
-| `--output <fmt>`  | `terminal` | Output format: `terminal`, `json`, or `junit`.                                                                         |
-| `--verbose`       | `false`    | Print the full JSON path and error message for each invalid file.                                                      |
-| `--workers <n>`   | `0`        | Number of parallel workers. `0` means one worker per logical CPU.                                                      |
-| `--no-progress`   | `false`    | Suppress the per-type progress bars (recommended in CI/CD).                                                            |
+| Flag              | Default    | Description                                                       |
+| ----------------- | ---------- | ----------------------------------------------------------------- |
+| `--schemas <dir>` | `.`        | Directory containing the JSON schema files.                       |
+| `--types <list>`  | _(auto)_   | Types to validate (e.g. `M,R,I`). Auto-detected when omitted.     |
+| `--all`           | `false`    | Validate all auto-detected types, ignoring `--types`.             |
+| `--output <fmt>`  | `terminal` | Output format: `terminal`, `json`, or `junit`.                    |
+| `--verbose`       | `false`    | Print the full JSON path and message for each invalid file.       |
+| `--workers <n>`   | `0`        | Number of parallel workers. `0` means one worker per logical CPU. |
+| `--no-progress`   | `false`    | Suppress the per-type progress bars (recommended in CI/CD).       |
 
 #### **Examples**
 
@@ -129,7 +129,7 @@ nodeval schema list --schemas ./schemas
 
 #### **Example output**
 
-```
+```text
 Schemas detected in ./schemas:
   ✓ Type I  → json-schema-Node_I.json
   ✓ Type M  → json-schema-Node_M.json
@@ -175,9 +175,9 @@ confirm which config file is active and what values are in effect.
 nodeval config show
 ```
 
-#### **Example output**
+#### **Config show output**
 
-```
+```text
 Config file : ./.nodeval.yaml
 
   schemas     : ./schemas
@@ -255,13 +255,13 @@ no_progress: false
 
 Schema files must be placed in the schemas directory (default `.`, overridable with `--schemas`) and named:
 
-```
+```text
 json-schema-Node_<TYPE>.json
 ```
 
 Examples:
 
-```
+```text
 json-schema-Node_M.json
 json-schema-Node_R.json
 json-schema-Node_I.json
@@ -271,13 +271,13 @@ json-schema-Node_I.json
 
 Data files to be validated must follow the pattern:
 
-```
+```text
 *_<TYPE>.json
 ```
 
 The `<TYPE>` suffix (the part between the last `_` and `.json`) is matched against the available schemas. Examples:
 
-```
+```text
 node_M.json          → validated against json-schema-Node_M.json
 report_2024_R.json   → validated against json-schema-Node_R.json
 config_I.json        → validated against json-schema-Node_I.json
@@ -293,7 +293,7 @@ Files whose suffix does not match any known type are silently skipped.
 
 Colored, human-readable output with optional progress bars. The final summary groups results by type.
 
-```
+```text
 ----------------------------------------------------------------------------------------------------
 
 ❌ bad_file_M.json : root > SomeDefinition : field xyz is required
@@ -310,7 +310,7 @@ Summary:
 
 With `--verbose`, each error is expanded over three lines:
 
-```
+```text
 ❌ bad_file_M.json
     Path    : root > SomeDefinition
     Message : field xyz is required
@@ -397,7 +397,7 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o nod
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o nodeval-arm64 .
 ```
 
-### Windows (PowerShell)
+### Windows — cross-compile (PowerShell)
 
 ```powershell
 # amd64
@@ -423,7 +423,7 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o no
 
 ## Project structure
 
-```
+```text
 nodeval/
 ├── main.go                              # Entry point — delegates to cmd.Execute()
 ├── go.mod                               # Module declaration and dependencies
