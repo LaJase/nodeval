@@ -72,13 +72,13 @@ nodeval validate ./data --all --output junit > results.xml
 
 ## Commands
 
-### `nodeval validate <directory>`
+### `nodeval validate [directory]`
 
-Recursively scans `<directory>` for files matching `*_<TYPE>.json` and validates each one against the corresponding
+Recursively scans `[directory]` for files matching `*_<TYPE>.json` and validates each one against the corresponding
 `json-schema-Node_<TYPE>.json` schema.
 
 ```bash
-nodeval validate <directory> [flags]
+nodeval validate [directory] [flags]
 ```
 
 | Flag                     | Default          | Description                                                       |
@@ -112,6 +112,9 @@ nodeval validate ./data --all --output junit --no-progress > results.xml
 
 # Full error detail in the terminal
 nodeval validate ./data --types I --verbose
+
+# Directory set in config, run without argument
+nodeval validate --all
 ```
 
 ---
@@ -293,6 +296,10 @@ Generate this file with `nodeval config init`, then edit as needed.
 ```yaml
 # nodeval configuration
 
+# Directory containing the JSON files to validate.
+# When set, nodeval validate can be run without a positional argument.
+# directory: ./data
+
 # Directory containing the JSON schema files
 # Default: . (current directory)
 schemas: ./schemas
@@ -327,6 +334,7 @@ no_progress: false
 
 | Key              | Type   | Default                        | Description                                           |
 | ---------------- | ------ | ------------------------------ | ----------------------------------------------------- |
+| `directory`      | string | _(empty)_                      | Default directory for JSON files to validate.         |
 | `schemas`        | string | `.`                            | Path to the directory holding schema files.           |
 | `schema_pattern` | string | `json-schema-Node_{type}.json` | Schema filename pattern (`{type}` = type name).       |
 | `types`          | list   | _(empty)_                      | Explicit list of types; auto-detected when empty.     |
