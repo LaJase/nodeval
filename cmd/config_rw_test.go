@@ -21,6 +21,9 @@ func TestReadWriteConfigFile_RoundTrip(t *testing.T) {
 	if got["schemas"] != "./schemas" {
 		t.Errorf("expected schemas=./schemas, got %v", got["schemas"])
 	}
+	if got["workers"] != 4 {
+		t.Errorf("expected workers=4, got %v (%T)", got["workers"], got["workers"])
+	}
 }
 
 func TestReadConfigFile_Missing(t *testing.T) {
@@ -31,7 +34,6 @@ func TestReadConfigFile_Missing(t *testing.T) {
 	if len(got) != 0 {
 		t.Errorf("expected empty map, got %v", got)
 	}
-	_ = got
 }
 
 func TestValidateKey(t *testing.T) {
@@ -55,5 +57,11 @@ func TestCoerceValue(t *testing.T) {
 	v, err = coerceValue("schemas", "./data")
 	if err != nil || v != "./data" {
 		t.Errorf("expected string ./data, got %v err %v", v, err)
+	}
+	if _, err := coerceValue("workers", "notanint"); err == nil {
+		t.Error("expected error for non-int workers value")
+	}
+	if _, err := coerceValue("verbose", "maybe"); err == nil {
+		t.Error("expected error for non-bool verbose value")
 	}
 }

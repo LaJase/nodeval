@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -27,7 +29,11 @@ func validateKey(key string) error {
 }
 
 func coerceValue(key, raw string) (any, error) {
-	switch validKeys[key] {
+	typ, ok := validKeys[key]
+	if !ok {
+		return nil, fmt.Errorf("unknown config key: %q", key)
+	}
+	switch typ {
 	case "bool":
 		v, err := strconv.ParseBool(raw)
 		if err != nil {
@@ -58,7 +64,7 @@ func globalConfigPath() (string, error) {
 // Returns an empty map (no error) if the file does not exist.
 func readConfigFile(path string) (map[string]any, error) {
 	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return map[string]any{}, nil
 	}
 	if err != nil {
