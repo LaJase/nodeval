@@ -5,9 +5,35 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+
+	"nodeval/internal/validator"
 )
 
 var separator = strings.Repeat("-", 100)
+
+func maxTypeWidth(results []validator.TypeResult) int {
+	w := 0
+	for _, res := range results {
+		if len(res.Type) > w {
+			w = len(res.Type)
+		}
+	}
+	return w
+}
+
+func summaryLine(typeWidth int, res validator.TypeResult) string {
+	prefix := color.GreenString(">")
+	errStr := fmt.Sprintf("%d Errors", res.Errors)
+	if res.Errors > 0 {
+		prefix = color.RedString(">")
+		errStr = color.RedString(errStr)
+	}
+	return fmt.Sprintf("%s Nodes %-*s : %s | %s",
+		prefix, typeWidth, res.Type,
+		color.GreenString("%4d OK", res.Success),
+		errStr,
+	)
+}
 
 type Terminal struct {
 	Verbose bool
@@ -38,20 +64,11 @@ func (t *Terminal) Render(r Report) error {
 
 	fmt.Printf("\nSummary:\n")
 	var totalFiles, totalErrors int
+	w := maxTypeWidth(r.Results)
 	for _, res := range r.Results {
 		totalFiles += res.Success + res.Errors
 		totalErrors += res.Errors
-		prefix := color.GreenString(">")
-		errStr := fmt.Sprintf("%d Errors", res.Errors)
-		if res.Errors > 0 {
-			prefix = color.RedString(">")
-			errStr = color.RedString(errStr)
-		}
-		fmt.Printf("%s Nodes %-2s : %s | %s\n",
-			prefix, res.Type,
-			color.GreenString("%4d OK", res.Success),
-			errStr,
-		)
+		fmt.Println(summaryLine(w, res))
 	}
 
 	fmt.Printf("\n%s\n\n", separator)

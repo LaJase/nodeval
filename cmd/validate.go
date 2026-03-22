@@ -109,24 +109,20 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	if outputFmt == "terminal" {
 		fmt.Printf("\n🚀 Analyzing : %s\n", color.CyanString(dir))
 		fmt.Printf("📂 Schemas   : %s\n", color.CyanString(schemasDir))
-		fmt.Printf("🏷️  Types     : %v\n\n", types)
+		fmt.Printf("🏷️ Types     : %v\n\n", types)
 	}
 
 	// Scan files
-	scanStart := time.Now()
 	filesByType, err := scanner.ScanFiles(dir, types)
 	if err != nil {
 		return fmt.Errorf("directory scan: %w", err)
-	}
-	scanDuration := time.Since(scanStart)
-	if outputFmt == "terminal" {
-		fmt.Printf("🔎 Scan time   : %v\n", scanDuration.Round(time.Millisecond))
 	}
 
 	totalTasks := 0
 	for _, files := range filesByType {
 		totalTasks += len(files)
 	}
+
 	if totalTasks == 0 {
 		color.Yellow("⚠️  No files found for the requested types.")
 		return nil
