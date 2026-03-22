@@ -87,9 +87,14 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Scan files
+	scanStart := time.Now()
 	filesByType, err := scanner.ScanFiles(dir, types)
 	if err != nil {
 		return fmt.Errorf("directory scan: %w", err)
+	}
+	scanDuration := time.Since(scanStart)
+	if outputFmt == "terminal" {
+		fmt.Printf("🔎 Scan time   : %v\n", scanDuration.Round(time.Millisecond))
 	}
 
 	totalTasks := 0
