@@ -31,7 +31,9 @@ func TestDefaultSchemaPattern(t *testing.T) {
 func TestLoadFromFile_Directory(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte("directory: ./data\n")
-	_ = os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0o644)
+	if err := os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0o644); err != nil {
+		t.Fatal(err)
+	}
 
 	cfg, err := config.LoadFrom(filepath.Join(dir, ".nodeval.yaml"))
 	if err != nil {
@@ -40,12 +42,17 @@ func TestLoadFromFile_Directory(t *testing.T) {
 	if cfg.Directory != "./data" {
 		t.Errorf("expected directory=./data, got %q", cfg.Directory)
 	}
+	if cfg.Schemas != "." {
+		t.Errorf("expected default schemas='.', got %q", cfg.Schemas)
+	}
 }
 
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte("output: json\nworkers: 4\nverbose: true\n")
-	_ = os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0o644)
+	if err := os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0o644); err != nil {
+		t.Fatal(err)
+	}
 
 	cfg, err := config.LoadFrom(filepath.Join(dir, ".nodeval.yaml"))
 	if err != nil {
