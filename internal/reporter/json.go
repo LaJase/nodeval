@@ -3,7 +3,6 @@ package reporter
 import (
 	"encoding/json"
 	"io"
-	"os"
 )
 
 type jsonOutput struct {
@@ -32,16 +31,10 @@ type JSON struct {
 }
 
 func (j *JSON) Render(r Report) error {
-	w := j.Writer
-	if w == nil {
-		w = os.Stdout
-	}
-
-	var total, errs int
+	w := effectiveWriter(j.Writer)
+	total, errs := calculateTotals(r.Results)
 	results := make([]jsonTypeResult, 0, len(r.Results))
 	for _, res := range r.Results {
-		total += res.Success + res.Errors
-		errs += res.Errors
 		tr := jsonTypeResult{
 			Type:    res.Type,
 			Success: res.Success,

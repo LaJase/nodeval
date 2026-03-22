@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"os"
 )
 
 type junitTestSuites struct {
@@ -34,10 +33,7 @@ type JUnit struct {
 }
 
 func (j *JUnit) Render(r Report) error {
-	w := j.Writer
-	if w == nil {
-		w = os.Stdout
-	}
+	w := effectiveWriter(j.Writer)
 
 	suites := junitTestSuites{}
 	for _, res := range r.Results {

@@ -63,11 +63,9 @@ func (t *Terminal) Render(r Report) error {
 	}
 
 	fmt.Printf("\nSummary:\n")
-	var totalFiles, totalErrors int
+	totalFiles, totalErrors := calculateTotals(r.Results)
 	w := maxTypeWidth(r.Results)
 	for _, res := range r.Results {
-		totalFiles += res.Success + res.Errors
-		totalErrors += res.Errors
 		fmt.Println(summaryLine(w, res))
 	}
 

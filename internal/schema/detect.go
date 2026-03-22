@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-// parsePattern splits pattern on "{type}" and returns prefix and suffix.
+// ParsePattern splits pattern on "{type}" and returns prefix and suffix.
 // Returns an error if "{type}" is not present.
-func parsePattern(pattern string) (prefix, suffix string, err error) {
+func ParsePattern(pattern string) (prefix, suffix string, err error) {
 	parts := strings.SplitN(pattern, "{type}", 2)
 	if len(parts) != 2 {
 		return "", "", fmt.Errorf("schema_pattern %q must contain {type}", pattern)
@@ -20,7 +20,7 @@ func parsePattern(pattern string) (prefix, suffix string, err error) {
 
 // DetectTypes scans dir and returns all type names matching the given pattern.
 func DetectTypes(dir, pattern string) ([]string, error) {
-	prefix, suffix, err := parsePattern(pattern)
+	prefix, suffix, err := ParsePattern(pattern)
 	if err != nil {
 		return nil, err
 	}

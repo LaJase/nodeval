@@ -23,7 +23,7 @@ type LocalLoader struct {
 }
 
 func NewLocalLoader(dir, pattern string) (*LocalLoader, error) {
-	prefix, suffix, err := parsePattern(pattern)
+	prefix, suffix, err := ParsePattern(pattern)
 	if err != nil {
 		return nil, err
 	}

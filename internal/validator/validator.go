@@ -169,12 +169,12 @@ func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 
 	data, err := os.ReadFile(fPath)
 	if err != nil {
-		return FileError{File: baseName, Message: "read error"}, false
+		return FileError{File: baseName, Message: fmt.Sprintf("read error: %v", err)}, false
 	}
 
 	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
-		return FileError{File: baseName, Message: "invalid JSON"}, false
+		return FileError{File: baseName, Message: fmt.Sprintf("invalid JSON: %v", err)}, false
 	}
 
 	errVal := sch.Validate(v)

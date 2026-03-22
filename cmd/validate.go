@@ -46,7 +46,7 @@ func init() {
 	f.String("schemas", ".", "Directory containing JSON schemas")
 	f.StringSlice("types", nil, "Types to validate (e.g. M,R,I). Default: auto-detected")
 	f.Bool("all", false, "Validate all detected types")
-	f.String("output", "terminal", "Output format: terminal | json | junit")
+	f.String("output", reporter.FormatTerminal, "Output format: terminal | json | junit")
 	f.Bool("verbose", false, "Show full validation error details")
 	f.Int("workers", 0, "Number of workers (0 = NumCPU)")
 	f.Bool("no-progress", false, "Disable progress bars")
@@ -82,7 +82,7 @@ func resolveTypes(schemasDir, schemaPattern string, typesFlag []string, allFlag 
 // Returns nil progress and an empty map when progress is disabled.
 func setupProgressBars(outputFmt string, noProgress bool, types []string, filesByType map[string][]string) (*mpb.Progress, map[string]*mpb.Bar) {
 	bars := make(map[string]*mpb.Bar)
-	if outputFmt != "terminal" || noProgress {
+	if outputFmt != reporter.FormatTerminal || noProgress {
 		return nil, bars
 	}
 	p := mpb.New(mpb.WithWidth(60))
@@ -114,9 +114,9 @@ func setupProgressBars(outputFmt string, noProgress bool, types []string, filesB
 // selectReporter returns the Reporter matching the requested output format.
 func selectReporter(outputFmt string, verbose bool) reporter.Reporter {
 	switch outputFmt {
-	case "json":
+	case reporter.FormatJSON:
 		return &reporter.JSON{}
-	case "junit":
+	case reporter.FormatJUnit:
 		return &reporter.JUnit{}
 	default:
 		return &reporter.Terminal{Verbose: verbose}
@@ -157,7 +157,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no types found in %s — check --schemas or use --types", schemasDir)
 	}
 
-	if outputFmt == "terminal" {
+	if outputFmt == reporter.FormatTerminal {
 		fmt.Printf("\n🚀 Analyzing : %s\n", color.CyanString(dir))
 		fmt.Printf("📂 Schemas   : %s\n", color.CyanString(schemasDir))
 		fmt.Printf("🏷️ Types     : %v\n\n", types)
@@ -188,7 +188,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	if numWorkers <= 0 {
 		numWorkers = runtime.NumCPU()
 	}
-	if outputFmt == "terminal" {
+	if outputFmt == reporter.FormatTerminal {
 		fmt.Printf("👷 Active workers : %d\n", numWorkers)
 	}
 

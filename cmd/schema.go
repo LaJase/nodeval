@@ -3,7 +3,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"nodeval/internal/schema"
 
@@ -32,9 +31,9 @@ var schemaListCmd = &cobra.Command{
 			return nil
 		}
 		fmt.Printf("Schemas detected in %s:\n", color.CyanString(dir))
-		parts := strings.SplitN(pattern, "{type}", 2)
+		prefix, suffix, _ := schema.ParsePattern(pattern)
 		for _, t := range types {
-			filename := parts[0] + t + parts[1]
+			filename := prefix + t + suffix
 			fmt.Printf("  %s Type %s → %s\n", color.GreenString("✓"), t, filename)
 		}
 		return nil

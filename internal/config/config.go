@@ -9,7 +9,6 @@ type Config struct {
 	Schemas       string   `mapstructure:"schemas"`
 	SchemaPattern string   `mapstructure:"schema_pattern"`
 	Types         []string `mapstructure:"types"`
-	All           bool     `mapstructure:"all"`
 	Output        string   `mapstructure:"output"`
 	Verbose       bool     `mapstructure:"verbose"`
 	Workers       int      `mapstructure:"workers"`
