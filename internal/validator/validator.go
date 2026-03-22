@@ -61,21 +61,21 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 		numWorkers = runtime.NumCPU()
 	}
 
-	totalTasks := 0
-	for _, files := range filesByType {
-		totalTasks += len(files)
-	}
-
-	taskChan := make(chan task, totalTasks)
+	taskChan := make(chan task, numWorkers*2)
 	resultsMap := make(map[string]*result)
 
-	for typeNode, files := range filesByType {
+	for typeNode := range filesByType {
 		resultsMap[typeNode] = &result{TypeResult: TypeResult{Type: typeNode}}
-		for _, p := range files {
-			taskChan <- task{path: p, typeNode: typeNode}
-		}
 	}
-	close(taskChan)
+
+	go func() {
+		for typeNode, files := range filesByType {
+			for _, p := range files {
+				taskChan <- task{path: p, typeNode: typeNode}
+			}
+		}
+		close(taskChan)
+	}()
 
 	var wg sync.WaitGroup
 	for i := 0; i < numWorkers; i++ {
