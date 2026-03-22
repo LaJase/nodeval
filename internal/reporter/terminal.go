@@ -1,4 +1,3 @@
-// internal/reporter/terminal.go
 package reporter
 
 import (

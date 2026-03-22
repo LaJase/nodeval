@@ -1,4 +1,3 @@
-// internal/reporter/json.go
 package reporter
 
 import (

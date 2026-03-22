@@ -1,4 +1,4 @@
-// internal/validator/validator.go
+// Package validator runs concurrent JSON Schema validation over sets of files.
 package validator
 
 import (
@@ -79,9 +79,7 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 
 	var wg sync.WaitGroup
 	for i := 0; i < numWorkers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			schemaCache := make(map[string]*jsonschema.Schema)
 			schemaFailed := make(map[string]bool)
 
@@ -112,13 +110,13 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 					schemaCache[t.typeNode] = sch
 				}
 
-				fe, ok := validateFile(sch, t.path, opts.Verbose)
+				fe, ok := validateFile(sch, t.path)
 				resultsMap[t.typeNode].record(ok, fe)
 				if opts.OnProgress != nil {
 					opts.OnProgress(t.typeNode)
 				}
 			}
-		}()
+		})
 	}
 	wg.Wait()
 
@@ -129,7 +127,7 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 	return out
 }
 
-func validateFile(sch *jsonschema.Schema, fPath string, verbose bool) (FileError, bool) {
+func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 	baseName := filepath.Base(fPath)
 
 	f, err := os.Open(fPath)
@@ -153,11 +151,11 @@ func validateFile(sch *jsonschema.Schema, fPath string, verbose bool) (FileError
 		return FileError{File: baseName, Message: fmt.Sprintf("%v", errVal)}, false
 	}
 
-	errPath, msg := extractError(ve, verbose)
+	errPath, msg := extractError(ve)
 	return FileError{File: baseName, Path: errPath, Message: msg}, false
 }
 
-func extractError(ve *jsonschema.ValidationError, verbose bool) (path, msg string) {
+func extractError(ve *jsonschema.ValidationError) (path, msg string) {
 	var contexts []string
 	curr := ve
 	for len(curr.Causes) > 0 {
@@ -172,8 +170,7 @@ func extractError(ve *jsonschema.ValidationError, verbose bool) (path, msg strin
 	}
 
 	finalMsg := curr.Message
-	if strings.HasPrefix(finalMsg, "missing properties: ") {
-		props := strings.TrimPrefix(finalMsg, "missing properties: ")
+	if props, ok := strings.CutPrefix(finalMsg, "missing properties: "); ok {
 		finalMsg = fmt.Sprintf("%s are required", strings.ReplaceAll(props, "'", ""))
 	}
 

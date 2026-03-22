@@ -1,3 +1,4 @@
+// Package schema handles JSON Schema loading and type detection.
 package schema
 
 import (

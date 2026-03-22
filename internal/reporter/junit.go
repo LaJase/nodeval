@@ -1,4 +1,3 @@
-// internal/reporter/junit.go
 package reporter
 
 import (

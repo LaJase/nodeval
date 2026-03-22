@@ -1,4 +1,4 @@
-// internal/reporter/reporter.go
+// Package reporter provides output formatters for validation results.
 package reporter
 
 import (
