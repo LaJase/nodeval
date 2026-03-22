@@ -9,6 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"nodeval/internal/validator"
 )
 
 func execValidateDir(args []string, configDir string) error {
@@ -41,6 +43,30 @@ func execValidateDir(args []string, configDir string) error {
 	root.SetErr(&bytes.Buffer{})
 	root.SetArgs(append([]string{"validate"}, args...))
 	return root.Execute()
+}
+
+func TestValidationError_TotalsAcrossAllTypes(t *testing.T) {
+	results := []validator.TypeResult{
+		{Type: "Alpha", Errors: 4},
+		{Type: "Zeta", Errors: 4},
+	}
+	err := validationExitError(results)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "8") {
+		t.Errorf("expected total of 8 invalid files in message, got: %q", err.Error())
+	}
+}
+
+func TestValidationError_NoErrorWhenAllValid(t *testing.T) {
+	results := []validator.TypeResult{
+		{Type: "Alpha", Errors: 0},
+		{Type: "Zeta", Errors: 0},
+	}
+	if err := validationExitError(results); err != nil {
+		t.Errorf("expected nil, got: %v", err)
+	}
 }
 
 func TestValidate_ArgOverridesConfig(t *testing.T) {

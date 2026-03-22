@@ -55,6 +55,17 @@ func init() {
 	_ = viper.BindPFlags(f)
 }
 
+func validationExitError(results []validator.TypeResult) error {
+	total := 0
+	for _, res := range results {
+		total += res.Errors
+	}
+	if total > 0 {
+		return &ValidationError{Msg: fmt.Sprintf("%d invalid file(s)", total)}
+	}
+	return nil
+}
+
 func runValidate(cmd *cobra.Command, args []string) error {
 	dir := viper.GetString("directory")
 	if len(args) > 0 {
@@ -200,11 +211,5 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Exit code
-	for _, res := range results {
-		if res.Errors > 0 {
-			return &ValidationError{Msg: fmt.Sprintf("%d invalid file(s)", res.Errors)}
-		}
-	}
-	return nil
+	return validationExitError(results)
 }
