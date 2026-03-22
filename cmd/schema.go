@@ -9,7 +9,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var schemaCmd = &cobra.Command{
@@ -22,10 +21,7 @@ var schemaListCmd = &cobra.Command{
 	Short: "List schemas detected in the --schemas directory",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
-		pattern, _ := cmd.Flags().GetString("schema-pattern")
-		if pattern == "" {
-			pattern = viper.GetString("schema_pattern")
-		}
+		pattern := resolveSchemaPattern(cmd)
 
 		types, err := schema.DetectTypes(dir, pattern)
 		if err != nil {
@@ -51,10 +47,7 @@ var schemaCheckCmd = &cobra.Command{
 	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
-		pattern, _ := cmd.Flags().GetString("schema-pattern")
-		if pattern == "" {
-			pattern = viper.GetString("schema_pattern")
-		}
+		pattern := resolveSchemaPattern(cmd)
 		all, _ := cmd.Flags().GetBool("all")
 
 		var types []string

@@ -55,6 +55,74 @@ func init() {
 	_ = viper.BindPFlags(f)
 }
 
+// resolveSchemaPattern returns the explicit flag value if set,
+// falling back to the viper config key (which uses underscores).
+func resolveSchemaPattern(cmd *cobra.Command) string {
+	if p, _ := cmd.Flags().GetString("schema-pattern"); p != "" {
+		return p
+	}
+	return viper.GetString("schema_pattern")
+}
+
+// resolveTypes returns the list of types to validate.
+// If types are explicitly provided and --all is not set, they are used directly.
+// Otherwise, types are auto-detected from the schemas directory.
+func resolveTypes(schemasDir, schemaPattern string, typesFlag []string, allFlag bool) ([]string, error) {
+	if !allFlag && len(typesFlag) > 0 {
+		return typesFlag, nil
+	}
+	detected, err := schema.DetectTypes(schemasDir, schemaPattern)
+	if err != nil {
+		return nil, fmt.Errorf("type detection: %w", err)
+	}
+	return detected, nil
+}
+
+// setupProgressBars creates one mpb bar per type when terminal output is active.
+// Returns nil progress and an empty map when progress is disabled.
+func setupProgressBars(outputFmt string, noProgress bool, types []string, filesByType map[string][]string) (*mpb.Progress, map[string]*mpb.Bar) {
+	bars := make(map[string]*mpb.Bar)
+	if outputFmt != "terminal" || noProgress {
+		return nil, bars
+	}
+	p := mpb.New(mpb.WithWidth(60))
+	maxTypeLen := 0
+	for _, t := range types {
+		if len(t) > maxTypeLen {
+			maxTypeLen = len(t)
+		}
+	}
+	for _, t := range types {
+		if len(filesByType[t]) == 0 {
+			continue
+		}
+		name := fmt.Sprintf("🔍 [Type %-*s]", maxTypeLen, t)
+		bars[t] = p.AddBar(int64(len(filesByType[t])),
+			mpb.PrependDecorators(
+				decor.Name(name, decor.WC{W: runewidth.StringWidth(name) + 1}),
+				decor.CountersNoUnit("%d/%d", decor.WC{W: 10}),
+			),
+			mpb.AppendDecorators(
+				decor.Percentage(decor.WC{W: 5}),
+				decor.OnComplete(decor.Name(""), color.GreenString("  ✅")),
+			),
+		)
+	}
+	return p, bars
+}
+
+// selectReporter returns the Reporter matching the requested output format.
+func selectReporter(outputFmt string, verbose bool) reporter.Reporter {
+	switch outputFmt {
+	case "json":
+		return &reporter.JSON{}
+	case "junit":
+		return &reporter.JUnit{}
+	default:
+		return &reporter.Terminal{Verbose: verbose}
+	}
+}
+
 func validationExitError(results []validator.TypeResult) error {
 	total := 0
 	for _, res := range results {
@@ -74,34 +142,17 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	if dir == "" {
 		return fmt.Errorf("no directory specified — pass it as argument or set 'directory' in config")
 	}
+
 	schemasDir := viper.GetString("schemas")
-	typesFlag := viper.GetStringSlice("types")
-	allFlag := viper.GetBool("all")
+	schemaPattern := resolveSchemaPattern(cmd)
 	outputFmt := viper.GetString("output")
 	verbose := viper.GetBool("verbose")
-	workers := viper.GetInt("workers")
 	noProgress := viper.GetBool("no-progress")
-	schemaPattern := viper.GetString("schema-pattern")
-	if schemaPattern == "" {
-		schemaPattern = viper.GetString("schema_pattern")
-	}
 
-	// Resolve types
-	var types []string
-	if allFlag || len(typesFlag) == 0 {
-		detected, err := schema.DetectTypes(schemasDir, schemaPattern)
-		if err != nil {
-			return fmt.Errorf("type detection: %w", err)
-		}
-		if len(typesFlag) > 0 && !allFlag {
-			types = typesFlag
-		} else {
-			types = detected
-		}
-	} else {
-		types = typesFlag
+	types, err := resolveTypes(schemasDir, schemaPattern, viper.GetStringSlice("types"), viper.GetBool("all"))
+	if err != nil {
+		return err
 	}
-
 	if len(types) == 0 {
 		return fmt.Errorf("no types found in %s — check --schemas or use --types", schemasDir)
 	}
@@ -112,7 +163,6 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		fmt.Printf("🏷️ Types     : %v\n\n", types)
 	}
 
-	// Scan files
 	filesByType, err := scanner.ScanFiles(dir, types)
 	if err != nil {
 		return fmt.Errorf("directory scan: %w", err)
@@ -122,49 +172,19 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	for _, files := range filesByType {
 		totalTasks += len(files)
 	}
-
 	if totalTasks == 0 {
 		color.Yellow("⚠️  No files found for the requested types.")
 		return nil
 	}
 
-	// Sort types for consistent display
 	typeOrder := make(map[string]int, len(types))
 	for i, t := range types {
 		typeOrder[t] = i
 	}
 
-	// Setup progress bars
-	var p *mpb.Progress
-	bars := make(map[string]*mpb.Bar)
-	if outputFmt == "terminal" && !noProgress {
-		p = mpb.New(mpb.WithWidth(60))
-		maxTypeLen := 0
-		for _, t := range types {
-			if len(t) > maxTypeLen {
-				maxTypeLen = len(t)
-			}
-		}
-		for _, t := range types {
-			files := filesByType[t]
-			if len(files) == 0 {
-				continue
-			}
-			name := fmt.Sprintf("🔍 [Type %-*s]", maxTypeLen, t)
-			bars[t] = p.AddBar(int64(len(files)),
-				mpb.PrependDecorators(
-					decor.Name(name, decor.WC{W: runewidth.StringWidth(name) + 1}),
-					decor.CountersNoUnit("%d/%d", decor.WC{W: 10}),
-				),
-				mpb.AppendDecorators(
-					decor.Percentage(decor.WC{W: 5}),
-					decor.OnComplete(decor.Name(""), color.GreenString("  ✅")),
-				),
-			)
-		}
-	}
+	p, bars := setupProgressBars(outputFmt, noProgress, types, filesByType)
 
-	numWorkers := workers
+	numWorkers := viper.GetInt("workers")
 	if numWorkers <= 0 {
 		numWorkers = runtime.NumCPU()
 	}
@@ -172,11 +192,12 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		fmt.Printf("👷 Active workers : %d\n", numWorkers)
 	}
 
-	start := time.Now()
 	loader, err := schema.NewLocalLoader(schemasDir, schemaPattern)
 	if err != nil {
 		return &ConfigError{Msg: fmt.Sprintf("invalid schema_pattern: %v", err)}
 	}
+
+	start := time.Now()
 	results := validator.Run(filesByType, loader, validator.Options{
 		Workers: numWorkers,
 		Verbose: verbose,
@@ -186,32 +207,17 @@ func runValidate(cmd *cobra.Command, args []string) error {
 			}
 		},
 	})
-
 	if p != nil {
 		p.Wait()
 	}
 	duration := time.Since(start)
 
-	// Sort results
 	sort.Slice(results, func(i, j int) bool {
 		return typeOrder[results[i].Type] < typeOrder[results[j].Type]
 	})
 
-	// Render
-	report := reporter.Report{Duration: duration, Results: results}
-	var r reporter.Reporter
-	switch outputFmt {
-	case "json":
-		r = &reporter.JSON{}
-	case "junit":
-		r = &reporter.JUnit{}
-	default:
-		r = &reporter.Terminal{Verbose: verbose}
-	}
-
-	if err := r.Render(report); err != nil {
+	if err := selectReporter(outputFmt, verbose).Render(reporter.Report{Duration: duration, Results: results}); err != nil {
 		return err
 	}
-
 	return validationExitError(results)
 }
