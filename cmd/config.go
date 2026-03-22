@@ -2,7 +2,9 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
 	"github.com/fatih/color"
@@ -160,11 +162,56 @@ Examples:
 	},
 }
 
+// runConfigUnset is the testable core of configUnsetCmd.
+func runConfigUnset(path, key string) error {
+	if err := validateKey(key); err != nil {
+		return err
+	}
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("config file not found: %s", path)
+	}
+	m, err := readConfigFile(path)
+	if err != nil {
+		return fmt.Errorf("reading config: %w", err)
+	}
+	if _, ok := m[key]; !ok {
+		color.Yellow("⚠️  key %q not set in %s", key, path)
+		return nil
+	}
+	delete(m, key)
+	return writeConfigFile(path, m)
+}
+
+var configUnsetCmd = &cobra.Command{
+	Use:   "unset <key>",
+	Short: "Remove a configuration key",
+	Long: `Remove a key from the local or global config file.
+If the key is not present, a warning is printed and the command exits successfully.
+
+Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+Note: the "types" key is a list and is not supported by get/set/unset.
+
+Examples:
+  nodeval config unset verbose
+  nodeval config unset --global output`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		global, _ := cmd.Flags().GetBool("global")
+		path, err := resolveConfigPath(global)
+		if err != nil {
+			return err
+		}
+		return runConfigUnset(path, args[0])
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configInitCmd)
 	configCmd.AddCommand(configShowCmd)
 	configCmd.AddCommand(configSetCmd)
 	configCmd.AddCommand(configGetCmd)
+	configCmd.AddCommand(configUnsetCmd)
 	configSetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
+	configUnsetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
 }
