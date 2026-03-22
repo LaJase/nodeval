@@ -26,7 +26,8 @@ type ConfigError struct{ Msg string }
 func (e *ConfigError) Error() string { return e.Msg }
 
 var rootCmd = &cobra.Command{
-	Use:   "nodeval",
+	Use:          "nodeval",
+	SilenceUsage: true,
 	Short: "Multithreaded JSON Schema validator",
 	Long: `nodeval validates JSON files against their associated schemas.
 

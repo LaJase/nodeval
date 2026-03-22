@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func execConfigGet(key string, cfgFile ...string) (string, error) {
+func execConfigGet(key string, cfgPath ...string) (string, error) {
 	viper.Reset()
 	viper.SetDefault("schemas", ".")
 	viper.SetDefault("output", "terminal")
@@ -18,9 +18,13 @@ func execConfigGet(key string, cfgFile ...string) (string, error) {
 	viper.SetDefault("no_progress", false)
 	viper.SetDefault("schema_pattern", "json-schema-Node_{type}.json")
 
-	if len(cfgFile) > 0 && cfgFile[0] != "" {
-		viper.SetConfigFile(cfgFile[0])
-		_ = viper.ReadInConfig()
+	if len(cfgPath) > 0 && cfgPath[0] != "" {
+		// Set the package-level cfgFile var so that initConfig (triggered by
+		// cobra.OnInitialize on Execute) uses this path via viper.SetConfigFile.
+		// We cannot use viper.SetConfigFile here directly because initConfig's
+		// viper.SetConfigName call would clear it before ReadInConfig runs.
+		cfgFile = cfgPath[0]
+		defer func() { cfgFile = "" }()
 	}
 
 	buf := &bytes.Buffer{}
