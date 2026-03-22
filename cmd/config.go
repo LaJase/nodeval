@@ -223,6 +223,5 @@ func init() {
 	configCmd.AddCommand(configSetCmd)
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configUnsetCmd)
-	configSetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
-	configUnsetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
+	configCmd.PersistentFlags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
 }
