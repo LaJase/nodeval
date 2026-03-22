@@ -139,12 +139,18 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	bars := make(map[string]*mpb.Bar)
 	if outputFmt == "terminal" && !noProgress {
 		p = mpb.New(mpb.WithWidth(60))
+		maxTypeLen := 0
+		for _, t := range types {
+			if len(t) > maxTypeLen {
+				maxTypeLen = len(t)
+			}
+		}
 		for _, t := range types {
 			files := filesByType[t]
 			if len(files) == 0 {
 				continue
 			}
-			name := fmt.Sprintf("🔍 [Type %s]", t)
+			name := fmt.Sprintf("🔍 [Type %-*s]", maxTypeLen, t)
 			bars[t] = p.AddBar(int64(len(files)),
 				mpb.PrependDecorators(
 					decor.Name(name, decor.WC{W: runewidth.StringWidth(name) + 1}),
