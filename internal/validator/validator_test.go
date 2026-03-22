@@ -71,10 +71,10 @@ func TestRun_MixedValidInvalidFiles(t *testing.T) {
 	loader := &stubLoader{schema: sch}
 
 	var files []string
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		files = append(files, writeJSON(t, dir, fmt.Sprintf("ok_%d_T.json", i), map[string]int{"id": i}))
 	}
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		// missing required "id" field
 		files = append(files, writeJSON(t, dir, fmt.Sprintf("bad_%d_T.json", i), map[string]string{"name": "x"}))
 	}

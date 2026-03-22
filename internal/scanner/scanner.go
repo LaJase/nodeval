@@ -1,3 +1,4 @@
+// Package scanner walks directories and groups JSON files by node type.
 package scanner
 
 import (
