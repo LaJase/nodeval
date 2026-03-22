@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	Directory     string
+	Directory     string   `mapstructure:"directory"`
 	Schemas       string   `mapstructure:"schemas"`
 	SchemaPattern string   `mapstructure:"schema_pattern"`
 	Types         []string `mapstructure:"types"`

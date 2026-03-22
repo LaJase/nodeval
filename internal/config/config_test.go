@@ -28,6 +28,20 @@ func TestDefaultSchemaPattern(t *testing.T) {
 	}
 }
 
+func TestLoadFromFile_Directory(t *testing.T) {
+	dir := t.TempDir()
+	content := []byte("directory: ./data\n")
+	_ = os.WriteFile(filepath.Join(dir, ".nodeval.yaml"), content, 0o644)
+
+	cfg, err := config.LoadFrom(filepath.Join(dir, ".nodeval.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Directory != "./data" {
+		t.Errorf("expected directory=./data, got %q", cfg.Directory)
+	}
+}
+
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte("output: json\nworkers: 4\nverbose: true\n")
