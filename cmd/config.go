@@ -131,10 +131,32 @@ Examples:
 	},
 }
 
+var configGetCmd = &cobra.Command{
+	Use:   "get <key>",
+	Short: "Get the effective value of a configuration key",
+	Long: `Print the effective value of a config key (CLI flags > local config > global config > defaults).
+
+Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+
+Examples:
+  nodeval config get schemas
+  nodeval config get output`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		key := args[0]
+		if err := validateKey(key); err != nil {
+			return err
+		}
+		fmt.Fprintln(cmd.OutOrStdout(), viper.Get(key))
+		return nil
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configInitCmd)
 	configCmd.AddCommand(configShowCmd)
 	configCmd.AddCommand(configSetCmd)
+	configCmd.AddCommand(configGetCmd)
 	configSetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
 }
