@@ -11,7 +11,9 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-// validKeys maps each config key to its type: "string", "bool", or "int".
+// validKeys maps settable config keys to their type ("string", "bool", "int").
+// The "types" key is intentionally excluded: it is a list and requires a
+// different input format not supported by the set/unset commands.
 var validKeys = map[string]string{
 	"schemas":        "string",
 	"schema_pattern": "string",

@@ -125,7 +125,8 @@ Examples:
 		if err := runConfigSet(path, args[0], args[1]); err != nil {
 			return err
 		}
-		color.Green("✅ %s = %s (in %s)", args[0], args[1], path)
+		coerced, _ := coerceValue(args[0], args[1])
+		color.Green("✅ %s = %v (in %s)", args[0], coerced, path)
 		return nil
 	},
 }

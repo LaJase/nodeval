@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -63,5 +64,15 @@ func TestCoerceValue(t *testing.T) {
 	}
 	if _, err := coerceValue("verbose", "maybe"); err == nil {
 		t.Error("expected error for non-bool verbose value")
+	}
+}
+
+func TestGlobalConfigPath(t *testing.T) {
+	path, err := globalConfigPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(path, filepath.Join(".config", "nodeval", ".nodeval.yaml")) {
+		t.Errorf("unexpected global config path: %s", path)
 	}
 }
