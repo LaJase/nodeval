@@ -21,6 +21,13 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
+func TestDefaultSchemaPattern(t *testing.T) {
+	cfg := config.Default()
+	if cfg.SchemaPattern != "json-schema-Node_{type}.json" {
+		t.Errorf("expected default schema pattern, got %q", cfg.SchemaPattern)
+	}
+}
+
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	content := []byte("output: json\nworkers: 4\nverbose: true\n")

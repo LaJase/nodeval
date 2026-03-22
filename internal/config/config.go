@@ -5,23 +5,25 @@ import (
 )
 
 type Config struct {
-	Directory  string
-	Schemas    string   `mapstructure:"schemas"`
-	Types      []string `mapstructure:"types"`
-	All        bool     `mapstructure:"all"`
-	Output     string   `mapstructure:"output"`
-	Verbose    bool     `mapstructure:"verbose"`
-	Workers    int      `mapstructure:"workers"`
-	NoProgress bool     `mapstructure:"no_progress"`
+	Directory     string
+	Schemas       string   `mapstructure:"schemas"`
+	SchemaPattern string   `mapstructure:"schema_pattern"`
+	Types         []string `mapstructure:"types"`
+	All           bool     `mapstructure:"all"`
+	Output        string   `mapstructure:"output"`
+	Verbose       bool     `mapstructure:"verbose"`
+	Workers       int      `mapstructure:"workers"`
+	NoProgress    bool     `mapstructure:"no_progress"`
 }
 
 func Default() Config {
 	return Config{
-		Schemas:    ".",
-		Output:     "terminal",
-		Workers:    0,
-		Verbose:    false,
-		NoProgress: false,
+		Schemas:       ".",
+		SchemaPattern: "json-schema-Node_{type}.json",
+		Output:        "terminal",
+		Workers:       0,
+		Verbose:       false,
+		NoProgress:    false,
 	}
 }
 
