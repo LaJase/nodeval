@@ -21,17 +21,21 @@ import (
 )
 
 var validateCmd = &cobra.Command{
-	Use:   "validate <directory>",
+	Use:   "validate [directory]",
 	Short: "Validate JSON files in a directory against their schemas",
-	Long: `Recursively walks <directory> and validates each *_<TYPE>.json file
+	Long: `Recursively walks [directory] and validates each *_<TYPE>.json file
 against the corresponding json-schema-Node_<TYPE>.json schema.
+
+The directory can be set in config (nodeval config set directory ./data)
+and omitted from the command line.
 
 Examples:
   nodeval validate ./data --all
   nodeval validate ./data --types M,R --verbose
   nodeval validate ./data --all --output json > results.json
-  nodeval validate ./data --all --output junit > results.xml`,
-	Args: cobra.ExactArgs(1),
+  nodeval validate ./data --all --output junit > results.xml
+  nodeval validate --all`,
+	Args: cobra.MaximumNArgs(1),
 	RunE: runValidate,
 }
 
@@ -52,7 +56,13 @@ func init() {
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
-	dir := args[0]
+	dir := viper.GetString("directory")
+	if len(args) > 0 {
+		dir = args[0]
+	}
+	if dir == "" {
+		return fmt.Errorf("no directory specified — pass it as argument or set 'directory' in config")
+	}
 	schemasDir := viper.GetString("schemas")
 	typesFlag := viper.GetStringSlice("types")
 	allFlag := viper.GetBool("all")
