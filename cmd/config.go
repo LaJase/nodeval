@@ -90,20 +90,20 @@ func resolveConfigPath(global bool) (string, error) {
 }
 
 // runConfigSet is the testable core of configSetCmd.
-func runConfigSet(path, key, value string) error {
+func runConfigSet(path, key, value string) (any, error) {
 	if err := validateKey(key); err != nil {
-		return err
+		return nil, err
 	}
 	coerced, err := coerceValue(key, value)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	m, err := readConfigFile(path)
 	if err != nil {
-		return fmt.Errorf("reading config: %w", err)
+		return nil, fmt.Errorf("reading config: %w", err)
 	}
 	m[key] = coerced
-	return writeConfigFile(path, m)
+	return coerced, writeConfigFile(path, m)
 }
 
 var configSetCmd = &cobra.Command{
@@ -122,12 +122,12 @@ Examples:
 		global, _ := cmd.Flags().GetBool("global")
 		path, err := resolveConfigPath(global)
 		if err != nil {
-			return err
+			return &ConfigError{Msg: err.Error()}
 		}
-		if err := runConfigSet(path, args[0], args[1]); err != nil {
-			return err
+		coerced, err := runConfigSet(path, args[0], args[1])
+		if err != nil {
+			return &ConfigError{Msg: err.Error()}
 		}
-		coerced, _ := coerceValue(args[0], args[1])
 		color.Green("✅ %s = %v (in %s)", args[0], coerced, path)
 		return nil
 	},
@@ -163,26 +163,27 @@ Examples:
 }
 
 // runConfigUnset is the testable core of configUnsetCmd.
-func runConfigUnset(path, key string) error {
+// It returns (true, nil) if the key was removed, (false, nil) if the key was absent,
+// or (false, err) on any error.
+func runConfigUnset(path, key string) (bool, error) {
 	if err := validateKey(key); err != nil {
-		return err
+		return false, err
 	}
 	// Explicitly check file existence: readConfigFile masks ErrNotExist and returns
 	// an empty map, which would silently create the file on write. For unset, we
 	// want an error when the file doesn't exist (unlike set, which creates it).
 	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("config file not found: %s", path)
+		return false, fmt.Errorf("config file not found: %s", path)
 	}
 	m, err := readConfigFile(path)
 	if err != nil {
-		return fmt.Errorf("reading config: %w", err)
+		return false, fmt.Errorf("reading config: %w", err)
 	}
 	if _, ok := m[key]; !ok {
-		color.Yellow("⚠️  key %q not set in %s", key, path)
-		return nil
+		return false, nil
 	}
 	delete(m, key)
-	return writeConfigFile(path, m)
+	return true, writeConfigFile(path, m)
 }
 
 var configUnsetCmd = &cobra.Command{
@@ -202,9 +203,16 @@ Examples:
 		global, _ := cmd.Flags().GetBool("global")
 		path, err := resolveConfigPath(global)
 		if err != nil {
-			return err
+			return &ConfigError{Msg: err.Error()}
 		}
-		return runConfigUnset(path, args[0])
+		removed, err := runConfigUnset(path, args[0])
+		if err != nil {
+			return &ConfigError{Msg: err.Error()}
+		}
+		if !removed {
+			color.Yellow("⚠️  key %q not set in %s", args[0], path)
+		}
+		return nil
 	},
 }
 

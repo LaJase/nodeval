@@ -527,7 +527,8 @@ nodeval/
 │   ├── root.go                          # Root command, config initialisation, exit-code mapping
 │   ├── validate.go                      # `nodeval validate` command and all its flags
 │   ├── schema.go                        # `nodeval schema list` and `nodeval schema check`
-│   └── config.go                        # `nodeval config init` and `nodeval config show`
+│   ├── config.go                        # nodeval config init, show, set, get, unset
+│   └── config_rw.go                     # YAML read/write helpers for config set/get/unset
 │
 ├── internal/
 │   ├── config/

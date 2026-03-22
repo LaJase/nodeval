@@ -12,7 +12,7 @@ func TestConfigSet_CreatesFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, ".nodeval.yaml")
 
-	if err := runConfigSet(path, "schemas", "./data"); err != nil {
+	if _, err := runConfigSet(path, "schemas", "./data"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -27,7 +27,7 @@ func TestConfigSet_OverwritesValue(t *testing.T) {
 	path := filepath.Join(dir, ".nodeval.yaml")
 	_ = writeConfigFile(path, map[string]any{"schemas": "."})
 
-	if err := runConfigSet(path, "schemas", "./new"); err != nil {
+	if _, err := runConfigSet(path, "schemas", "./new"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -41,7 +41,7 @@ func TestConfigSet_TypeCoercion(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, ".nodeval.yaml")
 
-	if err := runConfigSet(path, "workers", "8"); err != nil {
+	if _, err := runConfigSet(path, "workers", "8"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,7 +56,7 @@ func TestConfigSet_TypeCoercion(t *testing.T) {
 func TestConfigSet_UnknownKey(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, ".nodeval.yaml")
-	if err := runConfigSet(path, "badkey", "value"); err == nil {
+	if _, err := runConfigSet(path, "badkey", "value"); err == nil {
 		t.Error("expected error for unknown key")
 	}
 }

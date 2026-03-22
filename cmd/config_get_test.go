@@ -70,3 +70,23 @@ func TestConfigGet_UnknownKey(t *testing.T) {
 		t.Error("expected error for unknown key")
 	}
 }
+
+func TestConfigGet_BoolKey(t *testing.T) {
+	out, err := execConfigGet("verbose")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out != "false\n" {
+		t.Errorf("expected 'false\\n', got %q", out)
+	}
+}
+
+func TestConfigGet_IntKey(t *testing.T) {
+	out, err := execConfigGet("workers")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out != "0\n" {
+		t.Errorf("expected '0\\n', got %q", out)
+	}
+}
