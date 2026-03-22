@@ -23,31 +23,32 @@ naming convention, and validates every file in parallel using a configurable wor
 
 ## Installation
 
-Requirements: Go 1.22+ (the module declares `go 1.26.1`).
+Requirements: **Go 1.25+**
 
-### **Linux**
+Clone the repository then compile for your platform. The resulting binary is fully self-contained — no runtime
+dependencies, no installer.
+
+### Linux / macOS
 
 ```bash
 git clone <repo-url> nodeval
 cd nodeval
-go build -o nodeval .
+CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o nodeval .
 ```
 
-### **Windows (amd64)**
+### Windows (PowerShell)
 
 ```powershell
-$env:GOOS="windows"; $env:GOARCH="amd64"
-go build -o nodeval.exe .
+git clone <repo-url> nodeval
+cd nodeval
+$env:CGO_ENABLED=0; go build -ldflags="-s -w" -trimpath -o nodeval.exe .
 ```
 
-### **Windows (arm64)**
-
-```powershell
-$env:GOOS="windows"; $env:GOARCH="arm64"
-go build -o nodeval.exe .
-```
-
-The resulting binary is self-contained — no runtime dependencies.
+> **Flags explained**
+>
+> - `CGO_ENABLED=0` — fully static binary, no external DLL dependency
+> - `-ldflags="-s -w"` — strips debug symbols, reduces binary size
+> - `-trimpath` — removes local file paths from the binary
 
 ---
 
@@ -384,24 +385,38 @@ Compatible with GitLab CI, Jenkins, and any JUnit-aware test reporter.
 
 ## Cross-platform builds
 
+All commands use the same optimized flags. Run from the repository root.
+
+### Linux
+
 ```bash
-# Linux amd64 (native)
-go build -o nodeval .
+# amd64
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o nodeval .
 
-# Linux arm64
-GOOS=linux GOARCH=arm64 go build -o nodeval-linux-arm64 .
+# arm64
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o nodeval-arm64 .
+```
 
-# Windows amd64
-GOOS=windows GOARCH=amd64 go build -o nodeval.exe .
+### Windows (PowerShell)
 
-# Windows arm64
-GOOS=windows GOARCH=arm64 go build -o nodeval-arm64.exe .
+```powershell
+# amd64
+$env:CGO_ENABLED=0; $env:GOOS="windows"; $env:GOARCH="amd64"
+go build -ldflags="-s -w" -trimpath -o nodeval.exe .
 
-# macOS amd64
-GOOS=darwin GOARCH=amd64 go build -o nodeval-darwin .
+# arm64
+$env:CGO_ENABLED=0; $env:GOOS="windows"; $env:GOARCH="arm64"
+go build -ldflags="-s -w" -trimpath -o nodeval-arm64.exe .
+```
 
-# macOS arm64 (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -o nodeval-darwin-arm64 .
+### macOS
+
+```bash
+# Intel
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o nodeval .
+
+# Apple Silicon
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o nodeval-arm64 .
 ```
 
 ---
@@ -413,8 +428,6 @@ nodeval/
 ├── main.go                              # Entry point — delegates to cmd.Execute()
 ├── go.mod                               # Module declaration and dependencies
 ├── go.sum                               # Dependency checksums
-├── nodeval                               # Compiled Linux binary (not committed)
-├── nodeval.exe                           # Compiled Windows binary (not committed)
 │
 ├── cmd/
 │   ├── root.go                          # Root command, config initialisation, exit-code mapping
@@ -446,8 +459,6 @@ nodeval/
 │   │   └── loader_test.go               # Unit tests for schema loading
 │   │
 │   └── validator/
-│       └── validator.go                 # Run() — parallel worker pool, per-file validation logic
-│
-└── docs/
-    └── plans/                           # Design and implementation planning documents
+│       ├── validator.go                 # Run() — parallel worker pool, per-file validation logic
+│       └── validator_test.go            # Integration tests for the validator
 ```
