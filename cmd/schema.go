@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var schemaCmd = &cobra.Command{
@@ -19,7 +20,7 @@ var schemaListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List schemas detected in the --schemas directory",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dir, _ := cmd.Flags().GetString("schemas")
+		dir := viper.GetString("schemas")
 		pattern := resolveSchemaPattern(cmd)
 
 		types, err := schema.DetectTypes(dir, pattern)
@@ -45,7 +46,7 @@ var schemaCheckCmd = &cobra.Command{
 	Short: "Check that one or more schemas are valid and loadable",
 	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dir, _ := cmd.Flags().GetString("schemas")
+		dir := viper.GetString("schemas")
 		pattern := resolveSchemaPattern(cmd)
 		all, _ := cmd.Flags().GetBool("all")
 
@@ -95,7 +96,9 @@ func init() {
 	schemaCmd.AddCommand(schemaCheckCmd)
 
 	// PersistentFlags inherited by list and check
-	schemaCmd.PersistentFlags().String("schemas", ".", "Directory containing schemas")
-	schemaCmd.PersistentFlags().String("schema-pattern", "", "Schema filename pattern (e.g. schema_{type}.json)")
+	pf := schemaCmd.PersistentFlags()
+	pf.String("schemas", ".", "Directory containing schemas")
+	pf.String("schema-pattern", "", "Schema filename pattern (e.g. schema_{type}.json)")
+	_ = viper.BindPFlags(pf)
 	schemaCheckCmd.Flags().Bool("all", false, "Check all auto-detected types")
 }

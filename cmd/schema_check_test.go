@@ -8,7 +8,16 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+func TestSchemaCheck_ReadsSchemasDirFromViper(t *testing.T) {
+	dir := t.TempDir()
+	writeSchema(t, dir, "M")
+	if err := execSchemaCheck(dir, []string{"--all"}); err != nil {
+		t.Fatalf("expected success when schemas dir set in viper, got: %v", err)
+	}
+}
 
 func writeSchema(t *testing.T, dir, typ string) {
 	t.Helper()
@@ -22,11 +31,18 @@ func writeSchema(t *testing.T, dir, typ string) {
 // execSchemaCheck builds a minimal fresh Cobra tree per call to prevent flag
 // state from leaking between tests. It reuses only schemaCheckCmd.RunE; the
 // Use/Args fields are re-declared here and are not kept in sync automatically.
+//
+// dir is injected via viper at the override level so it survives the
+// initConfig SetDefault call triggered by cobra.OnInitialize.
 func execSchemaCheck(dir string, args []string) error {
+	viper.Reset()
+	viper.Set("schemas", dir)
+	viper.Set("schema_pattern", "json-schema-Node_{type}.json")
+
 	root := &cobra.Command{Use: "nodeval"}
 	parent := &cobra.Command{Use: "schema"}
-	parent.PersistentFlags().String("schemas", dir, "")
-	parent.PersistentFlags().String("schema-pattern", "json-schema-Node_{type}.json", "")
+	parent.PersistentFlags().String("schemas", "", "")
+	parent.PersistentFlags().String("schema-pattern", "", "")
 
 	child := &cobra.Command{
 		Use:  "check [type...]",
