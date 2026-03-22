@@ -70,6 +70,7 @@ func initConfig() {
 	viper.SetDefault("verbose", defaults.Verbose)
 	viper.SetDefault("no_progress", defaults.NoProgress)
 	viper.SetDefault("schema_pattern", defaults.SchemaPattern)
+	viper.SetDefault("directory", "")
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)

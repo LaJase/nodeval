@@ -15,6 +15,7 @@ import (
 // The "types" key is intentionally excluded: it is a list and requires a
 // different input format not supported by the set/unset commands.
 var validKeys = map[string]string{
+	"directory":      "string",
 	"schemas":        "string",
 	"schema_pattern": "string",
 	"output":         "string",

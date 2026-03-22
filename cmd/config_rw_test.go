@@ -67,6 +67,12 @@ func TestCoerceValue(t *testing.T) {
 	}
 }
 
+func TestValidateKey_Directory(t *testing.T) {
+	if err := validateKey("directory"); err != nil {
+		t.Errorf("expected directory to be a valid key, got: %v", err)
+	}
+}
+
 func TestGlobalConfigPath(t *testing.T) {
 	path, err := globalConfigPath()
 	if err != nil {
