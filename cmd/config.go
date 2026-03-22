@@ -79,8 +79,61 @@ var configShowCmd = &cobra.Command{
 	},
 }
 
+// resolveConfigPath returns the target config file path.
+func resolveConfigPath(global bool) (string, error) {
+	if global {
+		return globalConfigPath()
+	}
+	return ".nodeval.yaml", nil
+}
+
+// runConfigSet is the testable core of configSetCmd.
+func runConfigSet(path, key, value string) error {
+	if err := validateKey(key); err != nil {
+		return err
+	}
+	coerced, err := coerceValue(key, value)
+	if err != nil {
+		return err
+	}
+	m, err := readConfigFile(path)
+	if err != nil {
+		return fmt.Errorf("reading config: %w", err)
+	}
+	m[key] = coerced
+	return writeConfigFile(path, m)
+}
+
+var configSetCmd = &cobra.Command{
+	Use:   "set <key> <value>",
+	Short: "Set a configuration value",
+	Long: `Set a configuration key in the local or global config file.
+
+Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+
+Examples:
+  nodeval config set schemas ./schemas
+  nodeval config set output json
+  nodeval config set --global workers 8`,
+	Args: cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		global, _ := cmd.Flags().GetBool("global")
+		path, err := resolveConfigPath(global)
+		if err != nil {
+			return err
+		}
+		if err := runConfigSet(path, args[0], args[1]); err != nil {
+			return err
+		}
+		color.Green("✅ %s = %s (in %s)", args[0], args[1], path)
+		return nil
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configInitCmd)
 	configCmd.AddCommand(configShowCmd)
+	configCmd.AddCommand(configSetCmd)
+	configSetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
 }
