@@ -192,27 +192,54 @@ func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 }
 
 func extractError(ve *jsonschema.ValidationError) (path, msg string) {
-	contexts := make([]string, 0, 4)
 	curr := ve
 	for len(curr.Causes) > 0 {
-		m := curr.Message
-		if m != "" && !strings.Contains(m, "file://") {
-			clean := strings.TrimPrefix(m, "doesn't validate with ")
-			clean = strings.ReplaceAll(clean, "'", "")
-			clean = strings.TrimPrefix(clean, "/definitions/")
-			contexts = append(contexts, clean)
-		}
 		curr = curr.Causes[0]
 	}
+
+	path = jsonPtrToDot(curr.InstanceLocation)
 
 	finalMsg := curr.Message
 	if props, ok := strings.CutPrefix(finalMsg, "missing properties: "); ok {
 		finalMsg = fmt.Sprintf("%s are required", strings.ReplaceAll(props, "'", ""))
 	}
-
-	path = "root"
-	if len(contexts) > 0 {
-		path = strings.Join(contexts, " > ")
-	}
 	return path, finalMsg
+}
+
+// jsonPtrToDot converts a JSON Pointer (RFC 6901) to dot/bracket notation.
+// Example: /users/0/age → users[0].age
+func jsonPtrToDot(ptr string) string {
+	if ptr == "" {
+		return "(root)"
+	}
+	parts := strings.Split(strings.TrimPrefix(ptr, "/"), "/")
+	var b strings.Builder
+	for i, p := range parts {
+		p = strings.ReplaceAll(p, "~1", "/")
+		p = strings.ReplaceAll(p, "~0", "~")
+		switch {
+		case i == 0:
+			b.WriteString(p)
+		case isAllDigits(p):
+			b.WriteString("[")
+			b.WriteString(p)
+			b.WriteString("]")
+		default:
+			b.WriteString(".")
+			b.WriteString(p)
+		}
+	}
+	return b.String()
+}
+
+func isAllDigits(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }

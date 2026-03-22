@@ -35,6 +35,34 @@ func makeSchema(t *testing.T) *jsonschema.Schema {
 	return sch
 }
 
+func makeNestedSchema(t *testing.T) *jsonschema.Schema {
+	t.Helper()
+	compiler := jsonschema.NewCompiler()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "s.json")
+	src := `{
+		"type": "object",
+		"properties": {
+			"users": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"age": {"type": "integer", "minimum": 18}
+					},
+					"required": ["age"]
+				}
+			}
+		}
+	}`
+	_ = os.WriteFile(path, []byte(src), 0o644)
+	sch, err := compiler.Compile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return sch
+}
+
 func writeJSON(t *testing.T, dir, name string, v any) string {
 	t.Helper()
 	b, _ := json.Marshal(v)
@@ -97,6 +125,50 @@ func TestRun_OnProgressTotalMatchesFileCount(t *testing.T) {
 	}
 	if calls >= n {
 		t.Errorf("OnProgress called %d times for %d files: batching not working", calls, n)
+	}
+}
+
+func TestRun_ErrorPath_UsesDotBracketNotation(t *testing.T) {
+	dir := t.TempDir()
+	sch := makeNestedSchema(t)
+	loader := &stubLoader{schema: sch}
+
+	// users[0].age violates minimum:18
+	file := writeJSON(t, dir, "bad_T.json", map[string]any{
+		"users": []map[string]any{{"age": 12}},
+	})
+
+	results := validator.Run(map[string][]string{"T": {file}}, loader, validator.Options{Workers: 1})
+
+	if len(results) != 1 || len(results[0].Details) == 0 {
+		t.Fatal("expected one error detail")
+	}
+	got := results[0].Details[0].Path
+	want := "users[0].age"
+	if got != want {
+		t.Errorf("Path = %q, want %q", got, want)
+	}
+}
+
+func TestRun_ErrorPath_MissingRequiredField(t *testing.T) {
+	dir := t.TempDir()
+	sch := makeNestedSchema(t)
+	loader := &stubLoader{schema: sch}
+
+	// users[0] missing required "age"
+	file := writeJSON(t, dir, "bad_T.json", map[string]any{
+		"users": []map[string]any{{"name": "Alice"}},
+	})
+
+	results := validator.Run(map[string][]string{"T": {file}}, loader, validator.Options{Workers: 1})
+
+	if len(results) != 1 || len(results[0].Details) == 0 {
+		t.Fatal("expected one error detail")
+	}
+	got := results[0].Details[0].Path
+	want := "users[0]"
+	if got != want {
+		t.Errorf("Path = %q, want %q", got, want)
 	}
 }
 
