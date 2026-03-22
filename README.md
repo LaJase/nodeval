@@ -140,21 +140,36 @@ Schemas detected in ./schemas:
 
 ---
 
-### `nodeval schema check <type>`
+### `nodeval schema check [type...]`
 
-Loads and parses a single schema to verify it is valid and accessible. Useful for debugging schema issues before running
-a full validation.
+Loads and parses one or more schemas to verify they are valid and accessible. Pass explicit type names, or use `--all`
+to check every schema auto-detected in the `--schemas` directory. Useful for debugging schema issues before running a
+full validation.
 
 ```bash
-nodeval schema check M --schemas ./schemas
+nodeval schema check [type...] [flags]
 ```
 
 | Flag                     | Default          | Description                                           |
 | ------------------------ | ---------------- | ----------------------------------------------------- |
 | `--schemas <dir>`        | `.`              | Directory containing the schema file.                 |
 | `--schema-pattern <pat>` | _(config value)_ | Schema filename pattern. Use `{type}` as placeholder. |
+| `--all`                  | `false`          | Check all auto-detected types in the schemas directory. |
 
 Returns exit code `0` on success, `3` on failure.
+
+#### **Examples**
+
+```bash
+# Check a single schema
+nodeval schema check M --schemas ./schemas
+
+# Check multiple schemas at once
+nodeval schema check M R --schemas ./schemas
+
+# Check every schema auto-detected in the schemas directory
+nodeval schema check --all --schemas ./schemas
+```
 
 ---
 
