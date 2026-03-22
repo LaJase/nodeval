@@ -45,26 +45,49 @@ var schemaListCmd = &cobra.Command{
 }
 
 var schemaCheckCmd = &cobra.Command{
-	Use:   "check <type>",
-	Short: "Check that a schema is valid and loadable",
-	Args:  cobra.ExactArgs(1),
+	Use:   "check [type...]",
+	Short: "Check that one or more schemas are valid and loadable",
+	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
 		pattern, _ := cmd.Flags().GetString("schema-pattern")
 		if pattern == "" {
 			pattern = viper.GetString("schema_pattern")
 		}
-		typeNode := args[0]
+		all, _ := cmd.Flags().GetBool("all")
+
+		var types []string
+		if all {
+			detected, err := schema.DetectTypes(dir, pattern)
+			if err != nil {
+				return fmt.Errorf("reading schemas directory: %w", err)
+			}
+			types = detected
+		} else {
+			if len(args) == 0 {
+				return fmt.Errorf("specify at least one type or use --all")
+			}
+			types = args
+		}
+
 		loader, err := schema.NewLocalLoader(dir, pattern)
 		if err != nil {
 			return fmt.Errorf("invalid schema_pattern: %w", err)
 		}
-		_, err = loader.Load(typeNode)
-		if err != nil {
-			color.Red("❌ Invalid schema for type %s: %v", typeNode, err)
-			return fmt.Errorf("invalid schema: %w", err)
+
+		var failed int
+		for _, t := range types {
+			_, err = loader.Load(t)
+			if err != nil {
+				color.Red("❌ Type %s: %v", t, err)
+				failed++
+			} else {
+				color.Green("✅ Type %s: OK", t)
+			}
 		}
-		color.Green("✅ Schema for type %s: OK", typeNode)
+		if failed > 0 {
+			return fmt.Errorf("%d invalid schema(s)", failed)
+		}
 		return nil
 	},
 }
@@ -77,4 +100,5 @@ func init() {
 	// PersistentFlags inherited by list and check
 	schemaCmd.PersistentFlags().String("schemas", ".", "Directory containing schemas")
 	schemaCmd.PersistentFlags().String("schema-pattern", "", "Schema filename pattern (e.g. schema_{type}.json)")
+	schemaCheckCmd.Flags().Bool("all", false, "Check all auto-detected types")
 }
