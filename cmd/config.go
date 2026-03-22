@@ -37,6 +37,10 @@ Examples:
 		const template = `# nodeval configuration
 # Documentation: nodeval --help
 
+# Directory containing the JSON files to validate.
+# When set, nodeval validate can be run without a positional argument.
+# directory: ./data
+
 # Directory containing JSON schemas (json-schema-Node_<TYPE>.json)
 schemas: .
 
@@ -91,6 +95,7 @@ var configShowCmd = &cobra.Command{
 			cfgUsed = "(no config file found)"
 		}
 		fmt.Printf("Config file : %s\n\n", color.CyanString(cfgUsed))
+		fmt.Printf("  directory      : %s\n", viper.GetString("directory"))
 		fmt.Printf("  schemas        : %s\n", viper.GetString("schemas"))
 		fmt.Printf("  schema-pattern : %s\n", viper.GetString("schema_pattern"))
 		fmt.Printf("  types          : %v\n", viper.GetStringSlice("types"))
@@ -131,7 +136,7 @@ var configSetCmd = &cobra.Command{
 	Short: "Set a configuration value",
 	Long: `Set a configuration key in the local or global config file.
 
-Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+Valid keys: directory, schemas, schema_pattern, output, verbose, workers, no_progress
 
 Examples:
   nodeval config set schemas ./schemas
@@ -158,7 +163,7 @@ var configGetCmd = &cobra.Command{
 	Short: "Get the effective value of a configuration key",
 	Long: `Print the effective value of a config key (CLI flags > local config > global config > defaults).
 
-Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+Valid keys: directory, schemas, schema_pattern, output, verbose, workers, no_progress
 Note: the "types" key is a list and is not supported by get/set/unset.
 
 Examples:
@@ -212,7 +217,7 @@ var configUnsetCmd = &cobra.Command{
 	Long: `Remove a key from the local or global config file.
 If the key is not present, a warning is printed and the command exits successfully.
 
-Valid keys: schemas, schema_pattern, output, verbose, workers, no_progress
+Valid keys: directory, schemas, schema_pattern, output, verbose, workers, no_progress
 Note: the "types" key is a list and is not supported by get/set/unset.
 
 Examples:
