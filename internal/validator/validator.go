@@ -125,7 +125,7 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 					if err != nil {
 						schemaFailed[t.typeNode] = true
 						batches[t.typeNode].add(false, FileError{
-							File:    fmt.Sprintf("json-schema-Node_%s.json", t.typeNode),
+							File:    t.typeNode,
 							Path:    "",
 							Message: fmt.Sprintf("missing schema: %s", t.typeNode),
 						})

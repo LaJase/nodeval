@@ -15,17 +15,25 @@ type Loader interface {
 
 type LocalLoader struct {
 	dir      string
+	prefix   string
+	suffix   string
 	mu       sync.RWMutex
 	cache    map[string]*jsonschema.Schema
 	compiler *jsonschema.Compiler
 }
 
-func NewLocalLoader(dir string) *LocalLoader {
+func NewLocalLoader(dir, pattern string) (*LocalLoader, error) {
+	prefix, suffix, err := parsePattern(pattern)
+	if err != nil {
+		return nil, err
+	}
 	return &LocalLoader{
 		dir:      dir,
+		prefix:   prefix,
+		suffix:   suffix,
 		cache:    make(map[string]*jsonschema.Schema),
 		compiler: jsonschema.NewCompiler(),
-	}
+	}, nil
 }
 
 func (l *LocalLoader) Load(typeNode string) (*jsonschema.Schema, error) {
@@ -43,7 +51,7 @@ func (l *LocalLoader) Load(typeNode string) (*jsonschema.Schema, error) {
 		return sch, nil
 	}
 
-	path := filepath.Join(l.dir, fmt.Sprintf("json-schema-Node_%s.json", typeNode))
+	path := filepath.Join(l.dir, l.prefix+typeNode+l.suffix)
 	compiled, err := l.compiler.Compile(path)
 	if err != nil {
 		return nil, fmt.Errorf("schema %s: %w", typeNode, err)

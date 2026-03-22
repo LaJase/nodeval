@@ -42,8 +42,11 @@ var schemaCheckCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
 		typeNode := args[0]
-		loader := schema.NewLocalLoader(dir)
-		_, err := loader.Load(typeNode)
+		loader, err := schema.NewLocalLoader(dir, "json-schema-Node_{type}.json")
+		if err != nil {
+			return fmt.Errorf("schema loader: %w", err)
+		}
+		_, err = loader.Load(typeNode)
 		if err != nil {
 			color.Red("❌ Invalid schema for type %s: %v", typeNode, err)
 			return fmt.Errorf("invalid schema: %w", err)

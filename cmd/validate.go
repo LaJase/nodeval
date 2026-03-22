@@ -145,7 +145,11 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	}
 
 	start := time.Now()
-	results := validator.Run(filesByType, schema.NewLocalLoader(schemasDir), validator.Options{
+	loader, err := schema.NewLocalLoader(schemasDir, "json-schema-Node_{type}.json")
+	if err != nil {
+		return fmt.Errorf("schema loader: %w", err)
+	}
+	results := validator.Run(filesByType, loader, validator.Options{
 		Workers: numWorkers,
 		Verbose: verbose,
 		OnProgress: func(typeNode string, count int) {
