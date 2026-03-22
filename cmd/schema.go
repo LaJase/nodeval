@@ -19,7 +19,7 @@ var schemaListCmd = &cobra.Command{
 	Short: "List schemas detected in the --schemas directory",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := cmd.Flags().GetString("schemas")
-		types, err := schema.DetectTypes(dir)
+		types, err := schema.DetectTypes(dir, "json-schema-Node_{type}.json")
 		if err != nil {
 			return fmt.Errorf("reading schemas directory: %w", err)
 		}

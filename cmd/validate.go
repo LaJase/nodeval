@@ -63,7 +63,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 	// Resolve types
 	var types []string
 	if allFlag || len(typesFlag) == 0 {
-		detected, err := schema.DetectTypes(schemasDir)
+		detected, err := schema.DetectTypes(schemasDir, "json-schema-Node_{type}.json")
 		if err != nil {
 			return fmt.Errorf("type detection: %w", err)
 		}
