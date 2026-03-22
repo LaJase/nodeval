@@ -15,6 +15,10 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage nodeval configuration",
+	Long: `Manage nodeval configuration.
+
+Commands that write to a config file (set, unset) support --global to target
+the global config (~/.config/nodeval/.nodeval.yaml) instead of the local .nodeval.yaml.`,
 }
 
 var configInitCmd = &cobra.Command{
@@ -223,5 +227,6 @@ func init() {
 	configCmd.AddCommand(configSetCmd)
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configUnsetCmd)
-	configCmd.PersistentFlags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
+	configSetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
+	configUnsetCmd.Flags().Bool("global", false, "Write to global config (~/.config/nodeval/.nodeval.yaml)")
 }
