@@ -17,11 +17,15 @@ func captureStdout(f func()) string {
 	defer func() { color.NoColor = false }()
 
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
 	os.Stdout = w
+	defer func() { os.Stdout = old }()
+
 	f()
 	w.Close()
-	os.Stdout = old
 
 	var buf bytes.Buffer
 	buf.ReadFrom(r)
@@ -89,6 +93,24 @@ func TestTerminal_NormalMode_MultipleErrors_ShowsCount(t *testing.T) {
 	}
 	if !strings.Contains(out, "3 errors") {
 		t.Errorf("expected '3 errors' in output, got:\n%s", out)
+	}
+}
+
+func TestTerminal_NormalMode_CountBoundary_TwoErrors(t *testing.T) {
+	report := Report{
+		Duration: time.Second,
+		Results: []validator.TypeResult{
+			{Type: "T", Success: 0, Errors: 1, Details: []validator.FileError{
+				{File: "x_T.json", Count: 2},
+			}},
+		},
+	}
+	out := captureStdout(func() {
+		tr := &Terminal{Verbose: false}
+		_ = tr.Render(report)
+	})
+	if !strings.Contains(out, "2 errors") {
+		t.Errorf("expected '2 errors' for Count=2, got:\n%s", out)
 	}
 }
 

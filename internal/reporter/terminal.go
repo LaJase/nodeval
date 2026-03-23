@@ -9,6 +9,8 @@ import (
 	"nodeval/internal/validator"
 )
 
+const verboseIndent = "   "
+
 var separator = strings.Repeat("-", 100)
 
 func maxTypeWidth(results []validator.TypeResult) int {
@@ -39,16 +41,17 @@ type Terminal struct {
 	Verbose bool
 }
 
+type group struct {
+	file   string
+	errors []validator.FileError
+}
+
 func (t *Terminal) Render(r Report) error {
 	fmt.Printf("\n%s\n", separator)
 
 	for _, res := range r.Results {
 		if t.Verbose {
 			// Group FileErrors by file (preserve order of first appearance).
-			type group struct {
-				file   string
-				errors []validator.FileError
-			}
 			seen := make(map[string]int)
 			var groups []group
 			for _, d := range res.Details {
@@ -62,7 +65,7 @@ func (t *Terminal) Render(r Report) error {
 			for _, g := range groups {
 				fmt.Printf("%s %s :\n", color.RedString("❌"), color.YellowString(g.file))
 				for _, e := range g.errors {
-					fmt.Printf("   %s : %s\n", e.Path, e.Message)
+					fmt.Printf("%s%s : %s\n", verboseIndent, e.Path, e.Message)
 				}
 				fmt.Println()
 			}
