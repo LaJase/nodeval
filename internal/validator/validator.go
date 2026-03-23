@@ -192,7 +192,7 @@ func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 	return FileError{File: baseName, Path: errPath, Message: msg}, false
 }
 
-// formatMessage applies human-friendly transformations to a raw schema error message.
+// formatMessage applies a human-friendly transformation to a raw schema error message.
 func formatMessage(msg string) string {
 	if props, ok := strings.CutPrefix(msg, "missing properties: "); ok {
 		return fmt.Sprintf("%s are required", strings.ReplaceAll(props, "'", ""))
