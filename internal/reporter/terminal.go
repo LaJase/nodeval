@@ -43,21 +43,45 @@ func (t *Terminal) Render(r Report) error {
 	fmt.Printf("\n%s\n", separator)
 
 	for _, res := range r.Results {
-		for _, d := range res.Details {
-			if t.Verbose {
-				fmt.Printf("%s %s\n    Path    : %s\n    Message : %s\n\n",
-					color.RedString("❌"),
-					color.YellowString(d.File),
-					d.Path,
-					d.Message,
-				)
-			} else {
-				fmt.Printf("%s %s : %s : %s\n",
-					color.RedString("❌"),
-					color.YellowString(d.File),
-					d.Path,
-					d.Message,
-				)
+		if t.Verbose {
+			// Group FileErrors by file (preserve order of first appearance).
+			type group struct {
+				file   string
+				errors []validator.FileError
+			}
+			seen := make(map[string]int)
+			var groups []group
+			for _, d := range res.Details {
+				if i, ok := seen[d.File]; ok {
+					groups[i].errors = append(groups[i].errors, d)
+				} else {
+					seen[d.File] = len(groups)
+					groups = append(groups, group{file: d.File, errors: []validator.FileError{d}})
+				}
+			}
+			for _, g := range groups {
+				fmt.Printf("%s %s :\n", color.RedString("❌"), color.YellowString(g.file))
+				for _, e := range g.errors {
+					fmt.Printf("   %s : %s\n", e.Path, e.Message)
+				}
+				fmt.Println()
+			}
+		} else {
+			for _, d := range res.Details {
+				if d.Count > 1 {
+					fmt.Printf("%s %s : %d errors\n",
+						color.RedString("❌"),
+						color.YellowString(d.File),
+						d.Count,
+					)
+				} else {
+					fmt.Printf("%s %s : %s : %s\n",
+						color.RedString("❌"),
+						color.YellowString(d.File),
+						d.Path,
+						d.Message,
+					)
+				}
 			}
 		}
 	}
