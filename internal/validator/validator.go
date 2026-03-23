@@ -200,6 +200,19 @@ func formatMessage(msg string) string {
 	return msg
 }
 
+// countLeafErrors returns the number of leaf causes in a ValidationError tree.
+// It performs no string allocations, making it safe to call in normal (non-verbose) mode.
+func countLeafErrors(ve *jsonschema.ValidationError) int {
+	if len(ve.Causes) == 0 {
+		return 1
+	}
+	n := 0
+	for _, c := range ve.Causes {
+		n += countLeafErrors(c)
+	}
+	return n
+}
+
 func extractError(ve *jsonschema.ValidationError) (path, msg string) {
 	curr := ve
 	for len(curr.Causes) > 0 {

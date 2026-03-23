@@ -195,3 +195,48 @@ func TestRun_MixedValidInvalidFiles(t *testing.T) {
 		t.Errorf("expected 20 errors, got %d", results[0].Errors)
 	}
 }
+
+func makeMultiErrorSchema(t *testing.T) *jsonschema.Schema {
+	t.Helper()
+	compiler := jsonschema.NewCompiler()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "s.json")
+	src := `{
+		"type": "object",
+		"properties": {
+			"id":   {"type": "integer"},
+			"name": {"type": "string"}
+		}
+	}`
+	_ = os.WriteFile(path, []byte(src), 0o644)
+	sch, err := compiler.Compile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return sch
+}
+
+func TestRun_NormalMode_MultipleErrors_ShowsCount(t *testing.T) {
+	dir := t.TempDir()
+	sch := makeMultiErrorSchema(t)
+	loader := &stubLoader{schema: sch}
+
+	// id and name both have wrong types → 2 leaf errors
+	file := writeJSON(t, dir, "bad_T.json", map[string]any{
+		"id":   "not-an-int",
+		"name": 42,
+	})
+
+	results := validator.Run(map[string][]string{"T": {file}}, loader, validator.Options{Workers: 1})
+
+	if len(results) != 1 || len(results[0].Details) == 0 {
+		t.Fatal("expected one error detail")
+	}
+	d := results[0].Details[0]
+	if d.Count <= 1 {
+		t.Errorf("expected Count > 1 in normal mode, got Count=%d", d.Count)
+	}
+	if d.Path != "" || d.Message != "" {
+		t.Errorf("expected no path/message in normal mode multi-error, got Path=%q Message=%q", d.Path, d.Message)
+	}
+}
