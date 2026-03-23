@@ -48,12 +48,12 @@ type localBatch struct {
 	details []FileError
 }
 
-func (b *localBatch) add(ok bool, fe FileError) {
+func (b *localBatch) add(ok bool, fes []FileError) {
 	if ok {
 		b.success++
 	} else {
 		b.errors++
-		b.details = append(b.details, fe)
+		b.details = append(b.details, fes...)
 	}
 }
 
@@ -126,11 +126,10 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 					sch, err = loader.Load(t.typeNode)
 					if err != nil {
 						schemaFailed[t.typeNode] = true
-						batches[t.typeNode].add(false, FileError{
+						batches[t.typeNode].add(false, []FileError{{
 							File:    t.typeNode,
-							Path:    "",
 							Message: fmt.Sprintf("missing schema: %s", t.typeNode),
-						})
+						}})
 						pendingProgress[t.typeNode]++
 						if pendingProgress[t.typeNode] >= progressBatchSize {
 							flush(t.typeNode)
@@ -140,8 +139,8 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 					schemaCache[t.typeNode] = sch
 				}
 
-				fe, ok := validateFile(sch, t.path)
-				batches[t.typeNode].add(ok, fe)
+				fes, ok := validateFile(sch, t.path, opts.Verbose)
+				batches[t.typeNode].add(ok, fes)
 				pendingProgress[t.typeNode]++
 				if pendingProgress[t.typeNode] >= progressBatchSize {
 					flush(t.typeNode)
@@ -165,31 +164,44 @@ func Run(filesByType map[string][]string, loader schema.Loader, opts Options) []
 	return out
 }
 
-func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
+func validateFile(sch *jsonschema.Schema, fPath string, verbose bool) ([]FileError, bool) {
 	baseName := filepath.Base(fPath)
 
 	data, err := os.ReadFile(fPath)
 	if err != nil {
-		return FileError{File: baseName, Message: fmt.Sprintf("read error: %v", err)}, false
+		return []FileError{{File: baseName, Message: fmt.Sprintf("read error: %v", err)}}, false
 	}
 
 	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
-		return FileError{File: baseName, Message: fmt.Sprintf("invalid JSON: %v", err)}, false
+		return []FileError{{File: baseName, Message: fmt.Sprintf("invalid JSON: %v", err)}}, false
 	}
 
 	errVal := sch.Validate(v)
 	if errVal == nil {
-		return FileError{}, true
+		return nil, true
 	}
 
 	ve, ok := errVal.(*jsonschema.ValidationError)
 	if !ok {
-		return FileError{File: baseName, Message: fmt.Sprintf("%v", errVal)}, false
+		return []FileError{{File: baseName, Message: fmt.Sprintf("%v", errVal)}}, false
 	}
 
-	errPath, msg := extractError(ve)
-	return FileError{File: baseName, Path: errPath, Message: msg}, false
+	if verbose {
+		fes := extractAllErrors(ve)
+		for i := range fes {
+			fes[i].File = baseName
+		}
+		return fes, false
+	}
+
+	// Normal mode: avoid allocating path/message strings when there are multiple errors.
+	count := countLeafErrors(ve)
+	if count == 1 {
+		errPath, msg := extractError(ve)
+		return []FileError{{File: baseName, Path: errPath, Message: msg}}, false
+	}
+	return []FileError{{File: baseName, Count: count}}, false
 }
 
 // formatMessage applies a human-friendly transformation to a raw schema error message.
