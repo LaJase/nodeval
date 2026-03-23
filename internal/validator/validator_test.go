@@ -216,6 +216,37 @@ func makeMultiErrorSchema(t *testing.T) *jsonschema.Schema {
 	return sch
 }
 
+func TestRun_VerboseMode_MultipleErrors_ShowsAll(t *testing.T) {
+	dir := t.TempDir()
+	sch := makeMultiErrorSchema(t)
+	loader := &stubLoader{schema: sch}
+
+	file := writeJSON(t, dir, "bad_T.json", map[string]any{
+		"id":   "not-an-int",
+		"name": 42,
+	})
+
+	results := validator.Run(map[string][]string{"T": {file}}, loader, validator.Options{
+		Workers: 1,
+		Verbose: true,
+	})
+
+	if len(results) != 1 {
+		t.Fatal("expected one type result")
+	}
+	if got := len(results[0].Details); got != 2 {
+		t.Fatalf("expected 2 error details in verbose mode, got %d", got)
+	}
+	for _, d := range results[0].Details {
+		if d.File == "" {
+			t.Error("expected File to be set on every detail")
+		}
+		if d.Path == "" || d.Message == "" {
+			t.Errorf("expected Path and Message to be set in verbose mode, got Path=%q Message=%q", d.Path, d.Message)
+		}
+	}
+}
+
 func TestRun_NormalMode_MultipleErrors_ShowsCount(t *testing.T) {
 	dir := t.TempDir()
 	sch := makeMultiErrorSchema(t)

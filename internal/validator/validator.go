@@ -213,6 +213,21 @@ func countLeafErrors(ve *jsonschema.ValidationError) int {
 	return n
 }
 
+// extractAllErrors traverses all leaf causes and returns one FileError per leaf.
+// File is left empty; the caller sets it.
+func extractAllErrors(ve *jsonschema.ValidationError) []FileError {
+	if len(ve.Causes) == 0 {
+		path := jsonPtrToDot(ve.InstanceLocation)
+		msg := formatMessage(ve.Message)
+		return []FileError{{Path: path, Message: msg}}
+	}
+	var result []FileError
+	for _, c := range ve.Causes {
+		result = append(result, extractAllErrors(c)...)
+	}
+	return result
+}
+
 func extractError(ve *jsonschema.ValidationError) (path, msg string) {
 	curr := ve
 	for len(curr.Causes) > 0 {
