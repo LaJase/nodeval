@@ -48,6 +48,7 @@ type localBatch struct {
 	details []FileError
 }
 
+// add records one validated file. fes must be non-empty when ok is false.
 func (b *localBatch) add(ok bool, fes []FileError) {
 	if ok {
 		b.success++
@@ -226,6 +227,9 @@ func countLeafErrors(ve *jsonschema.ValidationError) int {
 }
 
 // extractAllErrors traverses all leaf causes and returns one FileError per leaf.
+// Intermediate nodes that have both a message and sub-causes are intentionally skipped —
+// the actionable error detail lives at the leaves for the property/type violations this
+// tool validates against.
 // File is left empty; the caller sets it.
 func extractAllErrors(ve *jsonschema.ValidationError) []FileError {
 	if len(ve.Causes) == 0 {
