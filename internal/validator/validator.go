@@ -17,8 +17,9 @@ import (
 
 type FileError struct {
 	File    string `json:"file"`
-	Path    string `json:"path"`
-	Message string `json:"message"`
+	Path    string `json:"path,omitempty"`
+	Message string `json:"message,omitempty"`
+	Count   int    `json:"count,omitempty"` // >1 when multiple errors exist but details were not extracted (normal mode)
 }
 
 type TypeResult struct {
@@ -191,19 +192,20 @@ func validateFile(sch *jsonschema.Schema, fPath string) (FileError, bool) {
 	return FileError{File: baseName, Path: errPath, Message: msg}, false
 }
 
+// formatMessage applies human-friendly transformations to a raw schema error message.
+func formatMessage(msg string) string {
+	if props, ok := strings.CutPrefix(msg, "missing properties: "); ok {
+		return fmt.Sprintf("%s are required", strings.ReplaceAll(props, "'", ""))
+	}
+	return msg
+}
+
 func extractError(ve *jsonschema.ValidationError) (path, msg string) {
 	curr := ve
 	for len(curr.Causes) > 0 {
 		curr = curr.Causes[0]
 	}
-
-	path = jsonPtrToDot(curr.InstanceLocation)
-
-	finalMsg := curr.Message
-	if props, ok := strings.CutPrefix(finalMsg, "missing properties: "); ok {
-		finalMsg = fmt.Sprintf("%s are required", strings.ReplaceAll(props, "'", ""))
-	}
-	return path, finalMsg
+	return jsonPtrToDot(curr.InstanceLocation), formatMessage(curr.Message)
 }
 
 // jsonPtrToDot converts a JSON Pointer (RFC 6901) to dot/bracket notation.
