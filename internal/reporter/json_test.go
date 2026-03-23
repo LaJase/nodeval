@@ -4,6 +4,7 @@ package reporter_test
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,5 +40,27 @@ func TestJSONReporter(t *testing.T) {
 	}
 	if out["success"].(bool) != false {
 		t.Error("expected success=false")
+	}
+}
+
+func TestJSON_CountOnlyError(t *testing.T) {
+	var buf bytes.Buffer
+	r := &reporter.JSON{Writer: &buf}
+	err := r.Render(reporter.Report{
+		Results: []validator.TypeResult{
+			{Type: "T", Errors: 1, Details: []validator.FileError{
+				{File: "x_T.json", Count: 3},
+			}},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	if !strings.Contains(out, `"count": 3`) {
+		t.Errorf("expected count in JSON output, got:\n%s", out)
+	}
+	if strings.Contains(out, `"path"`) || strings.Contains(out, `"message"`) {
+		t.Errorf("expected no path/message in count-only output, got:\n%s", out)
 	}
 }

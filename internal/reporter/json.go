@@ -22,8 +22,9 @@ type jsonTypeResult struct {
 
 type jsonDetail struct {
 	File    string `json:"file"`
-	Path    string `json:"path"`
-	Message string `json:"message"`
+	Path    string `json:"path,omitempty"`
+	Message string `json:"message,omitempty"`
+	Count   int    `json:"count,omitempty"`
 }
 
 type JSON struct {
@@ -42,7 +43,7 @@ func (j *JSON) Render(r Report) error {
 			Details: make([]jsonDetail, 0, len(res.Details)),
 		}
 		for _, d := range res.Details {
-			tr.Details = append(tr.Details, jsonDetail{File: d.File, Path: d.Path, Message: d.Message})
+			tr.Details = append(tr.Details, jsonDetail{File: d.File, Path: d.Path, Message: d.Message, Count: d.Count})
 		}
 		results = append(results, tr)
 	}

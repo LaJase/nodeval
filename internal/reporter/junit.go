@@ -48,11 +48,16 @@ func (j *JUnit) Render(r Report) error {
 			})
 		}
 		for _, d := range res.Details {
+			failureMsg := d.Path
+			failureText := d.Message
+			if d.Count > 1 {
+				failureMsg = fmt.Sprintf("%d errors (run with --verbose for details)", d.Count)
+			}
 			suite.TestCases = append(suite.TestCases, junitTestCase{
 				Name: d.File,
 				Failure: &junitFailure{
-					Message: d.Path,
-					Text:    d.Message,
+					Message: failureMsg,
+					Text:    failureText,
 				},
 			})
 		}

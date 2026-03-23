@@ -38,3 +38,22 @@ func TestJUnitReporter(t *testing.T) {
 		t.Error("expected failure message")
 	}
 }
+
+func TestJUnit_CountOnlyError(t *testing.T) {
+	var buf bytes.Buffer
+	r := &reporter.JUnit{Writer: &buf}
+	err := r.Render(reporter.Report{
+		Results: []validator.TypeResult{
+			{Type: "T", Errors: 1, Details: []validator.FileError{
+				{File: "x_T.json", Count: 4},
+			}},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	if !strings.Contains(out, "4 errors") {
+		t.Errorf("expected '4 errors' in JUnit output, got:\n%s", out)
+	}
+}
